@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+﻿using System.Collections;
 using Unity.Netcode;
-using System.Collections;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class NetPlayerController : NetworkBehaviour
 {
@@ -42,13 +43,53 @@ public class NetPlayerController : NetworkBehaviour
                 UIManager.Instance.SetNetPlayer(this);
             }
 
-            // ★★★ [핵심 기능 추가] 내가 클라이언트(2P)라면 카메라를 반대편으로 이동! ★★★
             // 서버(Host)는 기본 카메라(앞면)를 쓰고, 클라이언트(Client)는 뒷면 카메라를 씀
             if (!IsServer)
             {
                 AdjustCameraForClient();
             }
+
+            SceneManager.sceneLoaded += OnSceneLoaded;
         }
+    }
+
+    // ★ 오브젝트가 사라질 때 이벤트 연결 해제 (메모리 누수 방지)
+    public override void OnNetworkDespawn()
+    {
+        if (IsOwner)
+        {
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+        }
+    }
+
+    // ★ 씬 로드가 끝나면 호출되는 함수
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (IsOwner)
+        {
+            ResetDifficulty();
+            StartCharging();
+
+            // UI 매니저 연결
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.SetNetPlayer(this);
+            }
+        }
+
+        // 내가 주인이고, 서버가 아니라면(클라이언트라면) 카메라 조정
+        if (IsOwner && !IsServer)
+        {
+            // 조금 더 확실하게 하기 위해 약간의 딜레이 후 실행
+            StartCoroutine(DelayedCameraAdjust());
+        }
+    }
+
+    // 로딩 직후 카메라가 덮어씌워지는 것을 방지하기 위한 0.1초 딜레이
+    IEnumerator DelayedCameraAdjust()
+    {
+        yield return null; // 한 프레임 대기
+        AdjustCameraForClient();
     }
 
     // ★ 카메라를 반대편(Z축 뒤쪽)으로 옮기고 180도 돌려서 찍는 함수
@@ -57,11 +98,13 @@ public class NetPlayerController : NetworkBehaviour
         Camera mainCam = Camera.main;
         if (mainCam != null)
         {
-            // 원래 카메라: (0, 10, -10) / 회전 (50, 0, 0)
-            // 반전 카메라: (0, 10, 10)  / 회전 (50, 180, 0) -> 뒤에서 앞으로 찍음
-
-            mainCam.transform.position = new Vector3(0, 10, 10); // Z를 -10에서 10으로 변경
-            mainCam.transform.rotation = Quaternion.Euler(50, 180, 0); // Y축 180도 회전
+            mainCam.transform.position = new Vector3(0, 0, 10); // Z를 -10에서 10으로 변경
+            mainCam.transform.rotation = Quaternion.Euler(0, 180, 0); // Y축 180도 회전
+        }
+        else
+        {
+            // 혹시 카메라를 못 찾으면 0.1초 뒤에 다시 시도 (안전장치)
+            Invoke(nameof(AdjustCameraForClient), 0.1f);
         }
     }
 
