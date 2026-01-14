@@ -1,28 +1,32 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.EventSystems; // ★ [필수] 이게 있어야 터치 즉시 반응 구현 가능
 
 public class UIManager : MonoBehaviour
 {
     public static UIManager Instance;
 
     [Header("Controls")]
-    public Button actionButton;
+    public GameObject actionButtonObj; // ★ [변경] Button 대신 GameObject로 받아도 됨 (EventTrigger를 붙일 거라)
     public Button restartButton;
+    public Button titleButton;
 
     [Header("Gauge Display")]
     public Slider powerGaugeSlider;
     public Image sliderFillImage;
+    public RectTransform successZoneRect;
     public Color normalColor = Color.white;
     public Color successColor = Color.green;
 
     [Header("Game Info")]
     public TextMeshProUGUI resultText;
-    public TextMeshProUGUI distanceText; // 여기에 상태 텍스트 표시
+    public TextMeshProUGUI distanceText;
+    public TextMeshProUGUI roundText;
     public GameObject resultPanel;
 
     [Header("Reference")]
-    public PlayerUnit playerUnit;
+    public PlayerController playerController;
 
     private void Awake()
     {
@@ -31,13 +35,39 @@ public class UIManager : MonoBehaviour
 
     void Start()
     {
-        resultPanel.SetActive(false);
+        HideResult();
 
-        if (actionButton != null && playerUnit != null)
-            actionButton.onClick.AddListener(() => playerUnit.OnActionBtnPressed());
+        // ★ [핵심] 버튼을 "누르는 순간" 반응하도록 설정하는 함수 호출
+        if (actionButtonObj != null && playerController != null)
+        {
+            SetupRapidButton(actionButtonObj);
+        }
 
         if (restartButton != null)
             restartButton.onClick.AddListener(() => GameManager.Instance.RestartGame());
+
+        if (titleButton != null)
+            titleButton.onClick.AddListener(() => GameManager.Instance.GoToTitle());
+
+        UpdateRoundText(1);
+    }
+
+    // ★ [추가된 함수] 버튼에 "즉시 반응" 기능을 심어주는 로직
+    void SetupRapidButton(GameObject btnObj)
+    {
+        // 1. 이미 있는 EventTrigger를 가져오거나 없으면 추가
+        EventTrigger trigger = btnObj.GetComponent<EventTrigger>();
+        if (trigger == null) trigger = btnObj.AddComponent<EventTrigger>();
+
+        // 2. "PointerDown" (누르는 순간) 이벤트 생성
+        EventTrigger.Entry entry = new EventTrigger.Entry();
+        entry.eventID = EventTriggerType.PointerDown;
+
+        // 3. 실행할 함수 연결 (PlayerController의 TryAction)
+        entry.callback.AddListener((data) => { playerController.TryAction(); });
+
+        // 4. 트리거에 등록
+        trigger.triggers.Add(entry);
     }
 
     void Update()
@@ -45,21 +75,20 @@ public class UIManager : MonoBehaviour
         if (GameManager.Instance.currentState != GameManager.GameState.Playing)
         {
             powerGaugeSlider.value = 0f;
-            // 게임 중이 아닐 땐 상태 텍스트 숨기기 or 초기화
             if (distanceText != null) distanceText.text = "";
             return;
         }
 
-        if (playerUnit == null) return;
+        if (playerController == null) return;
 
-        // 1. 게이지 표시
-        if (playerUnit.currentState == SumoUnit.State.Charging)
+        if (playerController.IsCharging)
         {
-            float gauge = playerUnit.currentGaugeValue;
-            powerGaugeSlider.value = gauge;
+            float gauge = playerController.CurrentGaugeValue;
+            float threshold = playerController.CurrentThreshold;
 
-            // 플레이어의 현재 난이도 기준을 가져와서 색상 변경
-            sliderFillImage.color = (gauge >= playerUnit.currentSuccessThreshold) ? successColor : normalColor;
+            powerGaugeSlider.value = gauge;
+            sliderFillImage.color = (gauge >= threshold) ? successColor : normalColor;
+            UpdateSuccessZoneVisual(threshold);
         }
         else
         {
@@ -67,54 +96,63 @@ public class UIManager : MonoBehaviour
             sliderFillImage.color = normalColor;
         }
 
-        // 2. [변경됨] 전투 상태 텍스트 표시 (숫자 X -> 영어 텍스트 O)
         UpdateBattleStatus();
+    }
+
+    void UpdateSuccessZoneVisual(float threshold)
+    {
+        if (successZoneRect == null) return;
+        successZoneRect.anchorMin = new Vector2(threshold, 0f);
+        successZoneRect.anchorMax = new Vector2(1f, 1f);
+        successZoneRect.offsetMin = Vector2.zero;
+        successZoneRect.offsetMax = Vector2.zero;
+    }
+
+    public void UpdateRoundText(int round)
+    {
+        if (roundText != null) roundText.text = $"ROUND {round}";
     }
 
     void UpdateBattleStatus()
     {
         if (distanceText == null) return;
-
-        // GameManager에서 현재 상태 텍스트(영어) 가져오기
         string status = GameManager.Instance.GetBattleStatusText();
         distanceText.text = status;
 
-        // 텍스트 내용에 따라 색상 변경
         switch (status)
         {
-            case "DANGER!!":
-                distanceText.color = Color.red;         // 위험: 빨강
-                // 폰트 크기를 키우거나 흔들리는 효과를 추가해도 좋음
-                break;
-            case "FINISH HIM!":
-                distanceText.color = new Color(1f, 0.8f, 0f); // 마무리: 금색/노랑
-                break;
-            case "ADVANTAGE":
-                distanceText.color = Color.cyan;        // 우세: 청록
-                break;
-            case "DEFENSE!":
-                distanceText.color = new Color(1f, 0.5f, 0f); // 수비: 주황
-                break;
-            case "EQUAL":
-                distanceText.color = Color.white;       // 대등: 흰색
-                break;
+            case "DANGER!!": distanceText.color = Color.red; break;
+            case "FINISH HIM!": distanceText.color = new Color(1f, 0.8f, 0f); break;
+            case "ADVANTAGE": distanceText.color = Color.cyan; break;
+            case "DEFENSE!": distanceText.color = new Color(1f, 0.5f, 0f); break;
+            case "EQUAL": distanceText.color = Color.white; break;
         }
     }
 
     public void ShowResult(bool playerWin)
     {
         resultPanel.SetActive(true);
-        if (actionButton != null) actionButton.gameObject.SetActive(false);
+        if (actionButtonObj != null) actionButtonObj.SetActive(false);
 
         if (playerWin)
         {
             resultText.text = "VICTORY!";
             resultText.color = Color.green;
+            if (restartButton != null) restartButton.gameObject.SetActive(false);
+            if (titleButton != null) titleButton.gameObject.SetActive(false);
         }
         else
         {
             resultText.text = "DEFEAT...";
             resultText.color = Color.red;
+            if (restartButton != null) restartButton.gameObject.SetActive(true);
+            if (titleButton != null) titleButton.gameObject.SetActive(true);
         }
+    }
+
+    public void HideResult()
+    {
+        resultPanel.SetActive(false);
+        if (actionButtonObj != null) actionButtonObj.SetActive(true);
     }
 }
