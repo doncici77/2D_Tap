@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using System.Collections;
 
 public class AIController : MonoBehaviour
@@ -35,11 +35,11 @@ public class AIController : MonoBehaviour
                 continue;
             }
 
-            // 1. »ı°¢ÇÏ±â
+            // 1. ìƒê°í•˜ê¸°
             yield return new WaitForSeconds(Random.Range(minThinkTime, maxThinkTime));
 
-            // ¡Ú [º¯°æ] IsMoving Ã¼Å©³ª ´ë±â ¾øÀÌ ¹Ù·Î °ø°İ ½Ãµµ!
-            // °ÔÀÓ ¿À¹ö¸¸ ¾Æ´Ï¸é ¹«Á¶°Ç ¹Ğ¾îºÙÀÓ
+            // â˜… [ë³€ê²½] IsMoving ì²´í¬ë‚˜ ëŒ€ê¸° ì—†ì´ ë°”ë¡œ ê³µê²© ì‹œë„!
+            // ê²Œì„ ì˜¤ë²„ë§Œ ì•„ë‹ˆë©´ ë¬´ì¡°ê±´ ë°€ì–´ë¶™ì„
             if (!GameManager.Instance.IsGameOver)
             {
                 TryAttack();

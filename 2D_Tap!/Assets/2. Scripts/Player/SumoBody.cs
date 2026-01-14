@@ -1,41 +1,41 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 public class SumoBody : MonoBehaviour
 {
     [Header("References")]
-    public SumoBody opponent; // »ó´ë¹æ ¸öÃ¼
+    public SumoBody opponent; // ìƒëŒ€ë°© ëª¸ì²´
 
     [Header("Movement Settings")]
     public float moveSpeed = 10f;
     public float tileSize = 1.5f;
 
-    // ¿ÜºÎ(Controller)¿¡¼­ ³» »óÅÂ¸¦ ¾Ë±â À§ÇÑ º¯¼ö
+    // ì™¸ë¶€(Controller)ì—ì„œ ë‚´ ìƒíƒœë¥¼ ì•Œê¸° ìœ„í•œ ë³€ìˆ˜
     public bool IsMoving { get; private set; }
     private Vector3 targetPosition;
 
     private void Start()
     {
-        // ½ÃÀÛÇÒ ¶§ ³» À§Ä¡ °íÁ¤
+        // ì‹œì‘í•  ë•Œ ë‚´ ìœ„ì¹˜ ê³ ì •
         targetPosition = transform.position;
     }
 
     private void Update()
     {
-        // ÀÎÆ®·Î ÁßÀÏ ¶§´Â °­Á¦·Î À§Ä¡ µ¿±âÈ­ (Lerp Æ¦ ¹æÁö)
+        // ì¸íŠ¸ë¡œ ì¤‘ì¼ ë•ŒëŠ” ê°•ì œë¡œ ìœ„ì¹˜ ë™ê¸°í™” (Lerp íŠ ë°©ì§€)
         if (GameManager.Instance.currentState == GameManager.GameState.Intro)
         {
             targetPosition = transform.position;
             return;
         }
 
-        // 1. ¸ñÇ¥ ÁöÁ¡±îÁö ºÎµå·´°Ô ÀÌµ¿ (Lerp)
-        // ¸®Áöµå¹Ùµğ ¾øÀÌ ±×³É ÁÂÇ¥¸¦ ¿Å±é´Ï´Ù.
+        // 1. ëª©í‘œ ì§€ì ê¹Œì§€ ë¶€ë“œëŸ½ê²Œ ì´ë™ (Lerp)
+        // ë¦¬ì§€ë“œë°”ë”” ì—†ì´ ê·¸ëƒ¥ ì¢Œí‘œë¥¼ ì˜®ê¹ë‹ˆë‹¤.
         transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime * moveSpeed);
 
-        // 2. °ÅÀÇ µµÂøÇß´ÂÁö È®ÀÎ (0.05f ¿ÀÂ÷ ¹üÀ§)
+        // 2. ê±°ì˜ ë„ì°©í–ˆëŠ”ì§€ í™•ì¸ (0.05f ì˜¤ì°¨ ë²”ìœ„)
         if (Vector3.Distance(transform.position, targetPosition) < 0.05f)
         {
-            // ¿ÏÀüÈ÷ µµÂøÇÑ °É·Î Ã³¸® (¹Ì¼¼ ¶³¸² ¹æÁö)
+            // ì™„ì „íˆ ë„ì°©í•œ ê±¸ë¡œ ì²˜ë¦¬ (ë¯¸ì„¸ ë–¨ë¦¼ ë°©ì§€)
             transform.position = targetPosition;
             IsMoving = false;
         }
@@ -45,35 +45,35 @@ public class SumoBody : MonoBehaviour
         }
     }
 
-    // °ø°İ ¸í·ÉÀ» ¼öÇàÇÏ´Â ÇÔ¼ö (Controller°¡ È£Ãâ)
+    // ê³µê²© ëª…ë ¹ì„ ìˆ˜í–‰í•˜ëŠ” í•¨ìˆ˜ (Controllerê°€ í˜¸ì¶œ)
     public void PushOpponent()
     {
-        // 1. ³ª´Â ¾ÕÀ¸·Î 1Ä­ ÀüÁø
+        // 1. ë‚˜ëŠ” ì•ìœ¼ë¡œ 1ì¹¸ ì „ì§„
         MoveStep(1);
 
-        // 2. »ó´ë¹æÀº µÚ·Î 1Ä­ ¹Ğ·Á³²
+        // 2. ìƒëŒ€ë°©ì€ ë’¤ë¡œ 1ì¹¸ ë°€ë ¤ë‚¨
         if (opponent != null)
         {
             opponent.GetPushed();
         }
     }
 
-    // ³»°¡ ½º½º·Î ¾ÕÀ¸·Î ¿òÁ÷ÀÏ ¶§
+    // ë‚´ê°€ ìŠ¤ìŠ¤ë¡œ ì•ìœ¼ë¡œ ì›€ì§ì¼ ë•Œ
     public void MoveStep(int steps)
     {
-        // »ó´ë¹æÀÌ ÀÖ´Â ¹æÇâ °è»ê (¿À¸¥ÂÊÀÌµç ¿ŞÂÊÀÌµç ¾Ë¾Æ¼­ ±¸ÇÔ)
-        // »ó´ë xÁÂÇ¥ - ³» xÁÂÇ¥ÀÇ ºÎÈ£(+1 or -1)¸¦ ±¸ÇÔ
+        // ìƒëŒ€ë°©ì´ ìˆëŠ” ë°©í–¥ ê³„ì‚° (ì˜¤ë¥¸ìª½ì´ë“  ì™¼ìª½ì´ë“  ì•Œì•„ì„œ êµ¬í•¨)
+        // ìƒëŒ€ xì¢Œí‘œ - ë‚´ xì¢Œí‘œì˜ ë¶€í˜¸(+1 or -1)ë¥¼ êµ¬í•¨
         float direction = Mathf.Sign(opponent.transform.position.x - transform.position.x);
 
-        // ¸ñÇ¥ À§Ä¡ °»½Å
+        // ëª©í‘œ ìœ„ì¹˜ ê°±ì‹ 
         targetPosition += new Vector3(direction * steps * tileSize, 0, 0);
         IsMoving = true;
     }
 
-    // »ó´ë¿¡ ÀÇÇØ ¹Ğ·Á³¯ ¶§
+    // ìƒëŒ€ì— ì˜í•´ ë°€ë ¤ë‚  ë•Œ
     public void GetPushed()
     {
-        // ³» xÁÂÇ¥ - »ó´ë xÁÂÇ¥ = ³»°¡ ¹Ğ·Á³¯ ¹æÇâ
+        // ë‚´ xì¢Œí‘œ - ìƒëŒ€ xì¢Œí‘œ = ë‚´ê°€ ë°€ë ¤ë‚  ë°©í–¥
         float direction = Mathf.Sign(transform.position.x - opponent.transform.position.x);
 
         targetPosition += new Vector3(direction * tileSize, 0, 0);

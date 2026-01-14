@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
 
@@ -11,7 +11,7 @@ public class GameManager : MonoBehaviour
     public bool IsGameOver => currentState == GameState.GameOver;
 
     [Header("Round Settings")]
-    public int currentRound = 1; // ÇöÀç ¶ó¿îµå
+    public int currentRound = 1; // í˜„ì¬ ë¼ìš´ë“œ
 
     [Header("Scene Settings")]
     public string titleSceneName = "Title";
@@ -20,7 +20,7 @@ public class GameManager : MonoBehaviour
     public Transform playerTransform;
     public Transform aiTransform;
 
-    // ¡Ú [Ãß°¡] ÄÁÆ®·Ñ·¯¿¡ Á÷Á¢ ¸í·ÉÀ» ³»¸®±â À§ÇØ ÂüÁ¶ Ãß°¡
+    // â˜… [ì¶”ê°€] ì»¨íŠ¸ë¡¤ëŸ¬ì— ì§ì ‘ ëª…ë ¹ì„ ë‚´ë¦¬ê¸° ìœ„í•´ ì°¸ì¡° ì¶”ê°€
     public PlayerController playerController;
     public AIController aiController;
 
@@ -44,22 +44,22 @@ public class GameManager : MonoBehaviour
         StartCoroutine(IntroSequence());
     }
 
-    // °ÔÀÓ ½ÃÀÛ ¹× ¶ó¿îµå Àç½ÃÀÛ ½Ã È£ÃâµÇ´Â ¿¬Ãâ
+    // ê²Œì„ ì‹œì‘ ë° ë¼ìš´ë“œ ì¬ì‹œì‘ ì‹œ í˜¸ì¶œë˜ëŠ” ì—°ì¶œ
     IEnumerator IntroSequence()
     {
         currentState = GameState.Intro;
 
-        // ¡Ú [Ãß°¡] ¶ó¿îµå ½ÃÀÛ ¾Ë¸²
+        // â˜… [ì¶”ê°€] ë¼ìš´ë“œ ì‹œì‘ ì•Œë¦¼
         Debug.Log($"=== Round {currentRound} Start! ===");
         if (UIManager.Instance != null) UIManager.Instance.UpdateRoundText(currentRound);
 
-        // 1. À§Ä¡ ÃÊ±âÈ­
+        // 1. ìœ„ì¹˜ ì´ˆê¸°í™”
         playerTransform.position = new Vector3(-startDistance, playerTransform.position.y, 0);
         aiTransform.position = new Vector3(startDistance, aiTransform.position.y, 0);
 
         yield return new WaitForSeconds(0.5f);
 
-        // 2. Áß¾ÓÀ¸·Î ÀÌµ¿
+        // 2. ì¤‘ì•™ìœ¼ë¡œ ì´ë™
         Vector3 targetPos = new Vector3(-standDistance, playerTransform.position.y, 0);
 
         while (Vector3.Distance(playerTransform.position, targetPos) > 0.1f)
@@ -74,11 +74,11 @@ public class GameManager : MonoBehaviour
             yield return null;
         }
 
-        // 3. À§Ä¡ º¸Á¤
+        // 3. ìœ„ì¹˜ ë³´ì •
         playerTransform.position = new Vector3(-standDistance, playerTransform.position.y, 0);
         aiTransform.position = new Vector3(standDistance, aiTransform.position.y, 0);
 
-        // 4. °ÔÀÓ ½ÃÀÛ
+        // 4. ê²Œì„ ì‹œì‘
         Debug.Log("FIGHT!");
         currentState = GameState.Playing;
     }
@@ -87,14 +87,14 @@ public class GameManager : MonoBehaviour
     {
         if (currentState != GameState.Playing) return;
 
-        // ÆĞ¹è Ã¼Å©
+        // íŒ¨ë°° ì²´í¬
         if (Mathf.Abs(playerTransform.position.x) >= fallLineX)
         {
-            GameOver(false); // ÇÃ·¹ÀÌ¾î ³«»ç (ÆĞ¹è)
+            GameOver(false); // í”Œë ˆì´ì–´ ë‚™ì‚¬ (íŒ¨ë°°)
         }
         else if (Mathf.Abs(aiTransform.position.x) >= fallLineX)
         {
-            GameOver(true); // AI ³«»ç (½Â¸®)
+            GameOver(true); // AI ë‚™ì‚¬ (ìŠ¹ë¦¬)
         }
     }
 
@@ -102,39 +102,39 @@ public class GameManager : MonoBehaviour
     {
         if (playerWin)
         {
-            // ¡Ú [½Â¸®] ´ÙÀ½ ¶ó¿îµå ÁØºñ
+            // â˜… [ìŠ¹ë¦¬] ë‹¤ìŒ ë¼ìš´ë“œ ì¤€ë¹„
             Debug.Log("Player Win! Next Round...");
             StartCoroutine(PrepareNextRound());
         }
         else
         {
-            // ¡Ú [ÆĞ¹è] ÁøÂ¥ °ÔÀÓ ¿À¹ö
+            // â˜… [íŒ¨ë°°] ì§„ì§œ ê²Œì„ ì˜¤ë²„
             currentState = GameState.GameOver;
-            UIManager.Instance.ShowResult(false); // ÆĞ¹è UI Ç¥½Ã
+            UIManager.Instance.ShowResult(false); // íŒ¨ë°° UI í‘œì‹œ
         }
     }
 
-    // ¡Ú [Ãß°¡] ´ÙÀ½ ¶ó¿îµå·Î ³Ñ¾î°¡´Â ·ÎÁ÷
+    // â˜… [ì¶”ê°€] ë‹¤ìŒ ë¼ìš´ë“œë¡œ ë„˜ì–´ê°€ëŠ” ë¡œì§
     IEnumerator PrepareNextRound()
     {
-        currentState = GameState.GameOver; // Àá½Ã Á¶ÀÛ ºÒ°¡
+        currentState = GameState.GameOver; // ì ì‹œ ì¡°ì‘ ë¶ˆê°€
         UIManager.Instance.ShowResult(true);
 
-        // ½Â¸® ¸Ş½ÃÁö Àá±ñ º¸¿©ÁÖ±â (¼±ÅÃ»çÇ×)
+        // ìŠ¹ë¦¬ ë©”ì‹œì§€ ì ê¹ ë³´ì—¬ì£¼ê¸° (ì„ íƒì‚¬í•­)
         yield return new WaitForSeconds(2.0f);
 
-        // 1. ¶ó¿îµå ¼ö Áõ°¡
+        // 1. ë¼ìš´ë“œ ìˆ˜ ì¦ê°€
         currentRound++;
 
-        // 2. ÇÃ·¹ÀÌ¾î ½ºÅÈ ¸®¼Â (ÃÊ±âÈ­)
+        // 2. í”Œë ˆì´ì–´ ìŠ¤íƒ¯ ë¦¬ì…‹ (ì´ˆê¸°í™”)
         if (playerController != null) playerController.ResetDifficulty();
 
-        // 3. AI ³­ÀÌµµ °­È­ (»ı°¢ÇÏ´Â ½Ã°£ ´ÜÃà)
+        // 3. AI ë‚œì´ë„ ê°•í™” (ìƒê°í•˜ëŠ” ì‹œê°„ ë‹¨ì¶•)
         if (aiController != null) aiController.LevelUpAI();
 
         UIManager.Instance.HideResult();
 
-        // 4. ÀÎÆ®·Î ´Ù½Ã ½ÃÀÛ (À§Ä¡ ¸®¼Â Æ÷ÇÔµÊ)
+        // 4. ì¸íŠ¸ë¡œ ë‹¤ì‹œ ì‹œì‘ (ìœ„ì¹˜ ë¦¬ì…‹ í¬í•¨ë¨)
         StartCoroutine(IntroSequence());
     }
 

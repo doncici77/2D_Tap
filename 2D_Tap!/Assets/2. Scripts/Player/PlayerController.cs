@@ -1,6 +1,6 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using System.Collections;
-using UnityEngine.EventSystems; // UI ¿¹¿Ü Ã³¸®¸¦ À§ÇØ ÇÊ¿ä
+using UnityEngine.EventSystems; // UI ì˜ˆì™¸ ì²˜ë¦¬ë¥¼ ìœ„í•´ í•„ìš”
 
 public class PlayerController : MonoBehaviour
 {
@@ -19,14 +19,14 @@ public class PlayerController : MonoBehaviour
     [Range(0f, 0.1f)] public float thresholdStep = 0.05f;
     [Range(0f, 0.98f)] public float maxThreshold = 0.95f;
 
-    // »óÅÂ °ü¸®
+    // ìƒíƒœ ê´€ë¦¬
     private enum State { Idle, Charging, Cooldown }
     private State state = State.Idle;
 
-    // UI¿¡¼­ ³»°¡ Â÷Â¡ ÁßÀÎÁö ¾Ë ¼ö ÀÖ°Ô ÇØÁÖ´Â ÇÁ·ÎÆÛÆ¼
+    // UIì—ì„œ ë‚´ê°€ ì°¨ì§• ì¤‘ì¸ì§€ ì•Œ ìˆ˜ ìˆê²Œ í•´ì£¼ëŠ” í”„ë¡œí¼í‹°
     public bool IsCharging => state == State.Charging;
 
-    // °ÔÀÌÁö °ü·Ã
+    // ê²Œì´ì§€ ê´€ë ¨
     private float currentSpeed;
     private float currentThreshold;
     public float CurrentGaugeValue { get; private set; }
@@ -41,18 +41,18 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        // 1. °ÔÀÌÁö °è»ê
+        // 1. ê²Œì´ì§€ ê³„ì‚°
         if (state == State.Charging)
         {
             float timePassed = Time.time - chargeStartTime;
             CurrentGaugeValue = Mathf.PingPong(timePassed * currentSpeed, 1f);
         }
 
-        // 2. ¡Ú [Ãß°¡µÊ] Å°º¸µå/¸¶¿ì½º Á÷Á¢ ÀÔ·Â °¨Áö (¹İÀÀ¼Óµµ ÃÖÀûÈ­)
-        // ¹öÆ°À» ´©¸£Áö ¾Ê°í ½ºÆäÀÌ½º¹Ù¸¦ ´©¸£°Å³ª È­¸é ¾Æ¹« °÷ÀÌ³ª ÅÍÄ¡ÇØµµ °ø°İ ³ª°¨
+        // 2. â˜… [ì¶”ê°€ë¨] í‚¤ë³´ë“œ/ë§ˆìš°ìŠ¤ ì§ì ‘ ì…ë ¥ ê°ì§€ (ë°˜ì‘ì†ë„ ìµœì í™”)
+        // ë²„íŠ¼ì„ ëˆ„ë¥´ì§€ ì•Šê³  ìŠ¤í˜ì´ìŠ¤ë°”ë¥¼ ëˆ„ë¥´ê±°ë‚˜ í™”ë©´ ì•„ë¬´ ê³³ì´ë‚˜ í„°ì¹˜í•´ë„ ê³µê²© ë‚˜ê°
         if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
         {
-            // UI ¹öÆ°(ÀÏ½ÃÁ¤Áö µî) À§¿¡ ÀÖÀ» ¶§´Â Áßº¹ Å¬¸¯ ¹æÁö
+            // UI ë²„íŠ¼(ì¼ì‹œì •ì§€ ë“±) ìœ„ì— ìˆì„ ë•ŒëŠ” ì¤‘ë³µ í´ë¦­ ë°©ì§€
             if (EventSystem.current.IsPointerOverGameObject()) return;
 
             TryAction();
@@ -63,10 +63,10 @@ public class PlayerController : MonoBehaviour
     {
         if (GameManager.Instance.IsGameOver) return;
 
-        // ¡Ú [»èÁ¦] ÀÌ ÁÙÀ» Áö¿ö¾ß ¹Ğ·Á³ª´Â Áß¿¡µµ ¹İ°İ °¡´É!
+        // â˜… [ì‚­ì œ] ì´ ì¤„ì„ ì§€ì›Œì•¼ ë°€ë ¤ë‚˜ëŠ” ì¤‘ì—ë„ ë°˜ê²© ê°€ëŠ¥!
         // if (myBody.IsMoving) return; 
 
-        // °ø°İ ÄğÅ¸ÀÓ(°ÔÀÌÁö ÃæÀü) »óÅÂ¸¸ Ã¼Å©ÇÏ¸é µÊ
+        // ê³µê²© ì¿¨íƒ€ì„(ê²Œì´ì§€ ì¶©ì „) ìƒíƒœë§Œ ì²´í¬í•˜ë©´ ë¨
         if (state == State.Charging)
         {
             if (CurrentGaugeValue >= currentThreshold)
@@ -84,7 +84,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // (È¤½Ã ¸ğ¸¦ ±âÁ¸ ¿¬°á ²÷±è ¹æÁö¿ë - TryActionÀ» ºÎ¸§)
+    // (í˜¹ì‹œ ëª¨ë¥¼ ê¸°ì¡´ ì—°ê²° ëŠê¹€ ë°©ì§€ìš© - TryActionì„ ë¶€ë¦„)
     public void OnActionBtnPressed()
     {
         TryAction();
@@ -103,7 +103,7 @@ public class PlayerController : MonoBehaviour
     private IEnumerator FailRoutine()
     {
         state = State.Cooldown;
-        Debug.Log("Miss! ÆĞ³ÎÆ¼ Àû¿ë");
+        Debug.Log("Miss! íŒ¨ë„í‹° ì ìš©");
 
         ResetDifficulty();
 
@@ -129,6 +129,6 @@ public class PlayerController : MonoBehaviour
     {
         currentSpeed = initialGaugeSpeed;
         currentThreshold = initialThreshold;
-        Debug.Log("ÇÃ·¹ÀÌ¾î ³­ÀÌµµ ÃÊ±âÈ­µÊ");
+        Debug.Log("í”Œë ˆì´ì–´ ë‚œì´ë„ ì´ˆê¸°í™”ë¨");
     }
 }

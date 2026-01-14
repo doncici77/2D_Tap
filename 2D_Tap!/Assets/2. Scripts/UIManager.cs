@@ -1,14 +1,15 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using UnityEngine.EventSystems; // ¡Ú [ÇÊ¼ö] ÀÌ°Ô ÀÖ¾î¾ß ÅÍÄ¡ Áï½Ã ¹İÀÀ ±¸Çö °¡´É
+using UnityEngine.EventSystems;
+using Unity.Netcode; // â˜… [í•„ìˆ˜] IsOwner í™•ì¸ì„ ìœ„í•´ ì¶”ê°€
 
 public class UIManager : MonoBehaviour
 {
     public static UIManager Instance;
 
     [Header("Controls")]
-    public GameObject actionButtonObj; // ¡Ú [º¯°æ] Button ´ë½Å GameObject·Î ¹Ş¾Æµµ µÊ (EventTrigger¸¦ ºÙÀÏ °Å¶ó)
+    public GameObject actionButtonObj;
     public Button restartButton;
     public Button titleButton;
 
@@ -26,66 +27,146 @@ public class UIManager : MonoBehaviour
     public GameObject resultPanel;
 
     [Header("Reference")]
-    public PlayerController playerController;
+    public PlayerController singlePlayer;
+    public NetPlayerController netPlayer;
 
     private void Awake()
     {
-        if (Instance == null) Instance = this;
+        // ì”¬ì´ ì¬ë¡œë”©ë  ë•Œë§ˆë‹¤ ìƒˆë¡œìš´ Instanceê°€ ë˜ì–´ì•¼ í•¨
+        if (Instance != null && Instance != this)
+        {
+            Destroy(Instance.gameObject);
+        }
+        Instance = this;
+    }
+
+    public void SetNetPlayer(NetPlayerController controller)
+    {
+        netPlayer = controller;
+        singlePlayer = null;
+        if (actionButtonObj != null) SetupRapidButton(actionButtonObj);
+        Debug.Log($"UI: NetPlayer ì—°ê²°ë¨ ({controller.name})");
     }
 
     void Start()
     {
         HideResult();
 
-        // ¡Ú [ÇÙ½É] ¹öÆ°À» "´©¸£´Â ¼ø°£" ¹İÀÀÇÏµµ·Ï ¼³Á¤ÇÏ´Â ÇÔ¼ö È£Ãâ
-        if (actionButtonObj != null && playerController != null)
-        {
-            SetupRapidButton(actionButtonObj);
-        }
+        // ë²„íŠ¼ ì´ˆê¸°í™”
+        if (actionButtonObj != null) SetupRapidButton(actionButtonObj);
 
         if (restartButton != null)
-            restartButton.onClick.AddListener(() => GameManager.Instance.RestartGame());
+        {
+            restartButton.onClick.AddListener(() => {
+                // 1. ë©€í‹°í”Œë ˆì´: ë‚´ ìºë¦­í„°ë¥¼ í†µí•´ ìš”ì²­ ì „ì†¡
+                if (NetGameManager.Instance != null && netPlayer != null)
+                {
+                    // â˜… [ìˆ˜ì •] ë§¤ë‹ˆì € ì§ì ‘ í˜¸ì¶œ X -> ë‚´ í”Œë ˆì´ì–´ í†µí•´ í˜¸ì¶œ O
+                    netPlayer.SendRematchRequestServerRpc();
+
+                    HideResult();
+                    if (distanceText != null) distanceText.text = "WAITING FOR OPPONENT...";
+                }
+                // 2. ì‹±ê¸€í”Œë ˆì´: ë°”ë¡œ ì¬ì‹œì‘
+                else if (GameManager.Instance != null)
+                {
+                    GameManager.Instance.RestartGame();
+                }
+            });
+        }
 
         if (titleButton != null)
-            titleButton.onClick.AddListener(() => GameManager.Instance.GoToTitle());
+        {
+            titleButton.onClick.AddListener(() => {
+                if (NetGameManager.Instance != null) NetGameManager.Instance.GoToTitle();
+                else if (GameManager.Instance != null) GameManager.Instance.GoToTitle();
+            });
+        }
 
         UpdateRoundText(1);
     }
 
-    // ¡Ú [Ãß°¡µÈ ÇÔ¼ö] ¹öÆ°¿¡ "Áï½Ã ¹İÀÀ" ±â´ÉÀ» ½É¾îÁÖ´Â ·ÎÁ÷
     void SetupRapidButton(GameObject btnObj)
     {
-        // 1. ÀÌ¹Ì ÀÖ´Â EventTrigger¸¦ °¡Á®¿À°Å³ª ¾øÀ¸¸é Ãß°¡
         EventTrigger trigger = btnObj.GetComponent<EventTrigger>();
-        if (trigger == null) trigger = btnObj.AddComponent<EventTrigger>();
-
-        // 2. "PointerDown" (´©¸£´Â ¼ø°£) ÀÌº¥Æ® »ı¼º
+        if (trigger != null) Destroy(trigger);
+        trigger = btnObj.AddComponent<EventTrigger>();
         EventTrigger.Entry entry = new EventTrigger.Entry();
         entry.eventID = EventTriggerType.PointerDown;
 
-        // 3. ½ÇÇàÇÒ ÇÔ¼ö ¿¬°á (PlayerControllerÀÇ TryAction)
-        entry.callback.AddListener((data) => { playerController.TryAction(); });
-
-        // 4. Æ®¸®°Å¿¡ µî·Ï
+        entry.callback.AddListener((data) => {
+            if (netPlayer != null) netPlayer.TryAction();
+            else if (singlePlayer != null) singlePlayer.TryAction();
+            else Debug.LogWarning("ì—°ê²°ëœ í”Œë ˆì´ì–´ê°€ ì—†ìŠµë‹ˆë‹¤! (ì¬ì—°ê²° ì‹œë„ ì¤‘...)");
+        });
         trigger.triggers.Add(entry);
     }
 
     void Update()
     {
-        if (GameManager.Instance.currentState != GameManager.GameState.Playing)
+        bool isPlaying = false;
+
+        // 1. ë©€í‹°í”Œë ˆì´ ëª¨ë“œ
+        if (NetGameManager.Instance != null)
+        {
+            isPlaying = (NetGameManager.Instance.currentNetState.Value == NetGameManager.GameState.Playing);
+
+            // â˜…â˜…â˜… [í•µì‹¬ ìˆ˜ì •] ì¬ì‹œì‘ í›„ ì—°ê²°ì´ ëŠê²¼ë‹¤ë©´ ë‹¤ì‹œ ì°¾ê¸° (ë©€í‹°)
+            if (netPlayer == null)
+            {
+                var players = FindObjectsOfType<NetPlayerController>();
+                foreach (var p in players)
+                {
+                    // "ë‚´ ìºë¦­í„°(IsOwner)"ë¥¼ ì°¾ì•„ì„œ ì—°ê²°
+                    if (p.IsOwner)
+                    {
+                        SetNetPlayer(p);
+                        break;
+                    }
+                }
+            }
+        }
+        // 2. ì‹±ê¸€í”Œë ˆì´ ëª¨ë“œ
+        else if (GameManager.Instance != null)
+        {
+            isPlaying = (GameManager.Instance.currentState == GameManager.GameState.Playing);
+
+            // â˜… [í•µì‹¬ ìˆ˜ì •] ì¬ì‹œì‘ í›„ ì—°ê²°ì´ ëŠê²¼ë‹¤ë©´ ë‹¤ì‹œ ì°¾ê¸° (ì‹±ê¸€)
+            if (singlePlayer == null)
+            {
+                if (GameManager.Instance.playerController != null)
+                    singlePlayer = GameManager.Instance.playerController;
+                else
+                    singlePlayer = FindObjectOfType<PlayerController>();
+            }
+        }
+
+        // ê²Œì„ ì¤‘ì´ ì•„ë‹ˆë©´ ê²Œì´ì§€ ë„ê¸°
+        if (!isPlaying)
         {
             powerGaugeSlider.value = 0f;
-            if (distanceText != null) distanceText.text = "";
+            UpdateBattleStatus();
             return;
         }
 
-        if (playerController == null) return;
-
-        if (playerController.IsCharging)
+        // ê²Œì´ì§€ ê°±ì‹ 
+        if (netPlayer != null)
+            UpdateGauge(netPlayer.IsCharging, netPlayer.CurrentGaugeValue, netPlayer.CurrentThreshold);
+        else if (singlePlayer != null)
+            UpdateGauge(singlePlayer.IsCharging, singlePlayer.CurrentGaugeValue, singlePlayer.CurrentThreshold);
+        else
         {
-            float gauge = playerController.CurrentGaugeValue;
-            float threshold = playerController.CurrentThreshold;
+            powerGaugeSlider.value = 0f;
+            sliderFillImage.color = normalColor;
+        }
 
+        UpdateBattleStatus();
+    }
+
+    void UpdateGauge(bool isCharging, float gauge, float threshold)
+    {
+        if (isCharging)
+        {
             powerGaugeSlider.value = gauge;
             sliderFillImage.color = (gauge >= threshold) ? successColor : normalColor;
             UpdateSuccessZoneVisual(threshold);
@@ -95,8 +176,6 @@ public class UIManager : MonoBehaviour
             powerGaugeSlider.value = 0f;
             sliderFillImage.color = normalColor;
         }
-
-        UpdateBattleStatus();
     }
 
     void UpdateSuccessZoneVisual(float threshold)
@@ -116,16 +195,22 @@ public class UIManager : MonoBehaviour
     void UpdateBattleStatus()
     {
         if (distanceText == null) return;
-        string status = GameManager.Instance.GetBattleStatusText();
-        distanceText.text = status;
+        if (distanceText.text == "WAITING FOR OPPONENT...") return;
 
-        switch (status)
+        string status = "";
+        if (NetGameManager.Instance != null) status = NetGameManager.Instance.GetBattleStatusText();
+        else if (GameManager.Instance != null) status = GameManager.Instance.GetBattleStatusText();
+
+        if (!string.IsNullOrEmpty(status)) distanceText.text = status;
+
+        switch (distanceText.text)
         {
             case "DANGER!!": distanceText.color = Color.red; break;
             case "FINISH HIM!": distanceText.color = new Color(1f, 0.8f, 0f); break;
             case "ADVANTAGE": distanceText.color = Color.cyan; break;
             case "DEFENSE!": distanceText.color = new Color(1f, 0.5f, 0f); break;
             case "EQUAL": distanceText.color = Color.white; break;
+            default: distanceText.color = Color.white; break;
         }
     }
 
@@ -134,19 +219,18 @@ public class UIManager : MonoBehaviour
         resultPanel.SetActive(true);
         if (actionButtonObj != null) actionButtonObj.SetActive(false);
 
+        if (restartButton != null) restartButton.gameObject.SetActive(true);
+        if (titleButton != null) titleButton.gameObject.SetActive(true);
+
         if (playerWin)
         {
             resultText.text = "VICTORY!";
             resultText.color = Color.green;
-            if (restartButton != null) restartButton.gameObject.SetActive(false);
-            if (titleButton != null) titleButton.gameObject.SetActive(false);
         }
         else
         {
             resultText.text = "DEFEAT...";
             resultText.color = Color.red;
-            if (restartButton != null) restartButton.gameObject.SetActive(true);
-            if (titleButton != null) titleButton.gameObject.SetActive(true);
         }
     }
 
