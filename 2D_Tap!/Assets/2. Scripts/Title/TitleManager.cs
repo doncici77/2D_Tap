@@ -5,11 +5,17 @@ public class TitleManager : MonoBehaviour
 {
     [Header("Settings")]
     public string gameSceneName = "GameScene"; // 이동할 게임 씬 이름 (정확히 적어야 함)
+    public string multiSceneName = "MultiScene"; // 이동할 게임 씬 이름 (정확히 적어야 함)
 
     // 시작 버튼에 연결할 함수
     public void OnStartBtnClick()
     {
         SceneManager.LoadScene(gameSceneName);
+    }
+
+    public void OnMultiBtnClick()
+    {
+        SceneManager.LoadScene(multiSceneName);
     }
 
     // 종료 버튼에 연결할 함수

@@ -122,7 +122,7 @@ public class UIManager : MonoBehaviour
             // ★★★ [핵심 수정] 재시작 후 연결이 끊겼다면 다시 찾기 (멀티)
             if (netPlayer == null)
             {
-                var players = FindObjectsOfType<NetPlayerController>();
+                var players = FindObjectsByType<NetPlayerController>(FindObjectsSortMode.None);
                 foreach (var p in players)
                 {
                     // "내 캐릭터(IsOwner)"를 찾아서 연결
@@ -145,7 +145,7 @@ public class UIManager : MonoBehaviour
                 if (GameManager.Instance.playerController != null)
                     singlePlayer = GameManager.Instance.playerController;
                 else
-                    singlePlayer = FindObjectOfType<PlayerController>();
+                    singlePlayer = FindFirstObjectByType<PlayerController>();
             }
         }
 

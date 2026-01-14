@@ -63,7 +63,7 @@ public class NetGameManager : NetworkBehaviour
         while (player1 == null || player2 == null)
         {
             // 씬에 있는 모든 스모 선수 찾기
-            NetSumoBody[] bodies = FindObjectsOfType<NetSumoBody>();
+            NetSumoBody[] bodies = FindObjectsByType<NetSumoBody>(FindObjectsSortMode.None);
 
             foreach (var body in bodies)
             {
@@ -206,7 +206,7 @@ public class NetGameManager : NetworkBehaviour
         // 클라이언트 동기화 보정
         if (player1 == null || player2 == null)
         {
-            NetSumoBody[] bodies = FindObjectsOfType<NetSumoBody>();
+            NetSumoBody[] bodies = FindObjectsByType<NetSumoBody>(FindObjectsSortMode.None);
             foreach (var body in bodies)
             {
                 if (body.IsOwnedByServer) player1 = body;
