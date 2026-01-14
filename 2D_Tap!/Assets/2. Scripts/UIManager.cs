@@ -2,7 +2,6 @@
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
-using Unity.Netcode; // ★ [필수] IsOwner 확인을 위해 추가
 
 public class UIManager : MonoBehaviour
 {
@@ -12,6 +11,7 @@ public class UIManager : MonoBehaviour
     public GameObject actionButtonObj;
     public Button restartButton;
     public Button titleButton;
+    public Button multiExitButton;
 
     [Header("Gauge Display")]
     public Slider powerGaugeSlider;
@@ -78,6 +78,14 @@ public class UIManager : MonoBehaviour
         if (titleButton != null)
         {
             titleButton.onClick.AddListener(() => {
+                if (NetGameManager.Instance != null) NetGameManager.Instance.GoToTitle();
+                else if (GameManager.Instance != null) GameManager.Instance.GoToTitle();
+            });
+        }
+
+        if (multiExitButton != null)
+        {
+            multiExitButton.onClick.AddListener(() => {
                 if (NetGameManager.Instance != null) NetGameManager.Instance.GoToTitle();
                 else if (GameManager.Instance != null) GameManager.Instance.GoToTitle();
             });
@@ -195,14 +203,24 @@ public class UIManager : MonoBehaviour
     void UpdateBattleStatus()
     {
         if (distanceText == null) return;
-        if (distanceText.text == "WAITING FOR OPPONENT...") return;
+        if (distanceText.text == "WAITING FOR OPPONENT...")
+        {
+            if(NetGameManager.Instance != null)
+            {
+                multiExitButton.gameObject.SetActive(true);
+            }
+            return;
+        }
 
         string status = "";
         if (NetGameManager.Instance != null) status = NetGameManager.Instance.GetBattleStatusText();
         else if (GameManager.Instance != null) status = GameManager.Instance.GetBattleStatusText();
 
         if (!string.IsNullOrEmpty(status)) distanceText.text = status;
-
+        if (NetGameManager.Instance != null)
+        {
+            multiExitButton.gameObject.SetActive(false);
+        }
         switch (distanceText.text)
         {
             case "DANGER!!": distanceText.color = Color.red; break;
@@ -210,6 +228,13 @@ public class UIManager : MonoBehaviour
             case "ADVANTAGE": distanceText.color = Color.cyan; break;
             case "DEFENSE!": distanceText.color = new Color(1f, 0.5f, 0f); break;
             case "EQUAL": distanceText.color = Color.white; break;
+            case "WAITING...":
+                distanceText.color = Color.white;
+                if (NetGameManager.Instance != null)
+                {
+                    multiExitButton.gameObject.SetActive(true);
+                }
+                break;
             default: distanceText.color = Color.white; break;
         }
     }
