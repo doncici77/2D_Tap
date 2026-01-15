@@ -915,8 +915,8 @@ MonoBehaviour:
   titleButton: {fileID: 8263123765473765773}
   restartButton: {fileID: 114868601233769131}
   powerGaugeSlider: {fileID: 160476548069064369}
-  sliderFillImage: {fileID: 248221436888465145}
-  successZoneRect: {fileID: 3939661131727394349}
+  sliderFillImage: {fileID: 328565011455565599}
+  successZoneRect: {fileID: 3733835921559598408}
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   successColor: {r: 0, g: 1, b: 0, a: 1}
   resultText: {fileID: 2141839315719506185}

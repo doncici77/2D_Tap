@@ -252,7 +252,6 @@ public class NetGameManager : NetworkBehaviour
         if (MultiUIManager.Instance != null)
         {
             MultiUIManager.Instance.HideResult();
-            MultiUIManager.Instance.UpdateRoundText(1);
         }
     }
 

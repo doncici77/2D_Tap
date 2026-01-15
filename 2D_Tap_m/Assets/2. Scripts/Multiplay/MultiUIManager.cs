@@ -24,7 +24,6 @@ public class MultiUIManager : MonoBehaviour
     [Header("Game Info")]
     public TextMeshProUGUI resultText;
     public TextMeshProUGUI distanceText;
-    public TextMeshProUGUI roundText;
     public GameObject resultPanel;
 
     // 멀티 플레이어 참조
@@ -47,7 +46,6 @@ public class MultiUIManager : MonoBehaviour
     void Start()
     {
         HideResult();
-        UpdateRoundText(1);
 
         // 재시작 버튼 (재대결 요청)
         if (restartButton != null)
@@ -185,10 +183,5 @@ public class MultiUIManager : MonoBehaviour
     {
         resultPanel.SetActive(false);
         if (actionButtonObj != null) actionButtonObj.SetActive(true);
-    }
-
-    public void UpdateRoundText(int round)
-    {
-        if (roundText != null) roundText.text = $"ROUND {round}";
     }
 }

@@ -47,16 +47,6 @@ public class PlayerController : MonoBehaviour
             float timePassed = Time.time - chargeStartTime;
             CurrentGaugeValue = Mathf.PingPong(timePassed * currentSpeed, 1f);
         }
-
-        // 2. ★ [추가됨] 키보드/마우스 직접 입력 감지 (반응속도 최적화)
-        // 버튼을 누르지 않고 스페이스바를 누르거나 화면 아무 곳이나 터치해도 공격 나감
-        if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
-        {
-            // UI 버튼(일시정지 등) 위에 있을 때는 중복 클릭 방지
-            if (EventSystem.current.IsPointerOverGameObject()) return;
-
-            TryAction();
-        }
     }
 
     public void TryAction()
