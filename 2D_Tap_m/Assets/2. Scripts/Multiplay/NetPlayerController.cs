@@ -174,6 +174,22 @@ public class NetPlayerController : NetworkBehaviour
         }
     }
 
+    // NetGameManager가 소프트 리셋(재시작)할 때 호출하는 함수
+    [Rpc(SendTo.Owner)]
+    public void ResetPlayerStateRpc()
+    {
+        ResetDifficulty();
+        state = State.Idle;
+        CurrentGaugeValue = 0f;
+        StartCharging();
+
+        // 클라이언트라면 카메라 위치도 다시 잡아줍니다.
+        if (!IsServer)
+        {
+            AdjustCameraForClient();
+        }
+    }
+
     private void SuccessAttackLocal()
     {
         currentSpeed = Mathf.Min(currentSpeed + speedStep, maxGaugeSpeed);
