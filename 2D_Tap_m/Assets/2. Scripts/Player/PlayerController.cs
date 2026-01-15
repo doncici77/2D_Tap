@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System.Collections;
-using UnityEngine.EventSystems; // UI 예외 처리를 위해 필요
 
 public class PlayerController : MonoBehaviour
 {
@@ -19,14 +18,17 @@ public class PlayerController : MonoBehaviour
     [Range(0f, 0.1f)] public float thresholdStep = 0.05f;
     [Range(0f, 0.98f)] public float maxThreshold = 0.95f;
 
-    // 상태 관리
+    // ★ [추가] 콤보 시스템 변수
+    [Header("Combo System")]
+    private int comboCount = 0;
+    public float comboBonus = 0.2f; // 콤보당 20% 파워 증가
+    public float maxComboPower = 3.0f; // 최대 3배
+
     private enum State { Idle, Charging, Cooldown }
     private State state = State.Idle;
 
-    // UI에서 내가 차징 중인지 알 수 있게 해주는 프로퍼티
     public bool IsCharging => state == State.Charging;
 
-    // 게이지 관련
     private float currentSpeed;
     private float currentThreshold;
     public float CurrentGaugeValue { get; private set; }
@@ -41,7 +43,6 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        // 1. 게이지 계산
         if (state == State.Charging)
         {
             float timePassed = Time.time - chargeStartTime;
@@ -53,18 +54,26 @@ public class PlayerController : MonoBehaviour
     {
         if (GameManager.Instance.IsGameOver) return;
 
-        // ★ [삭제] 이 줄을 지워야 밀려나는 중에도 반격 가능!
-        // if (myBody.IsMoving) return; 
-
-        // 공격 쿨타임(게이지 충전) 상태만 체크하면 됨
         if (state == State.Charging)
         {
             if (CurrentGaugeValue >= currentThreshold)
             {
+                // ★ [추가] 콤보 성공 로직
+                comboCount++;
+
+                // UI 갱신
+                if (SingleUIManager.Instance != null)
+                    SingleUIManager.Instance.UpdateComboText(comboCount);
+
                 SuccessAttack();
             }
             else
             {
+                // ★ [추가] 콤보 실패 (초기화)
+                comboCount = 0;
+                if (SingleUIManager.Instance != null)
+                    SingleUIManager.Instance.UpdateComboText(0);
+
                 StartCoroutine(FailRoutine());
             }
         }
@@ -74,7 +83,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // (혹시 모를 기존 연결 끊김 방지용 - TryAction을 부름)
     public void OnActionBtnPressed()
     {
         TryAction();
@@ -82,7 +90,11 @@ public class PlayerController : MonoBehaviour
 
     private void SuccessAttack()
     {
-        myBody.PushOpponent();
+        // ★ [수정] 콤보 파워 계산 후 전달
+        float power = 1.0f + ((comboCount - 1) * comboBonus);
+        power = Mathf.Min(power, maxComboPower);
+
+        myBody.PushOpponent(power); // 파워 실어서 밀기!
 
         currentSpeed = Mathf.Min(currentSpeed + speedStep, maxGaugeSpeed);
         currentThreshold = Mathf.Min(currentThreshold + thresholdStep, maxThreshold);
@@ -95,7 +107,7 @@ public class PlayerController : MonoBehaviour
         state = State.Cooldown;
         Debug.Log("Miss! 패널티 적용");
 
-        ResetDifficulty();
+        ResetDifficulty(); // 여기서 콤보도 같이 초기화됨
 
         yield return new WaitForSeconds(attackCooldown);
         StartCharging();
@@ -119,6 +131,12 @@ public class PlayerController : MonoBehaviour
     {
         currentSpeed = initialGaugeSpeed;
         currentThreshold = initialThreshold;
-        Debug.Log("플레이어 난이도 초기화됨");
+
+        // ★ [추가] 난이도 리셋될 때 콤보도 초기화
+        comboCount = 0;
+        if (SingleUIManager.Instance != null)
+            SingleUIManager.Instance.UpdateComboText(0);
+
+        Debug.Log("플레이어 난이도 & 콤보 초기화됨");
     }
 }

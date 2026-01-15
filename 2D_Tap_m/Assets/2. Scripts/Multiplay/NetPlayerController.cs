@@ -19,6 +19,12 @@ public class NetPlayerController : NetworkBehaviour
     [Range(0f, 0.1f)] public float thresholdStep = 0.05f;
     [Range(0f, 0.98f)] public float maxThreshold = 0.95f;
 
+    // ★ [추가] 콤보 관련 변수
+    [Header("Combo System")]
+    private int comboCount = 0; // 현재 콤보
+    public float comboBonus = 0.2f; // 콤보당 추가 파워 (예: 1콤보당 20% 쎄짐)
+    public float maxComboPower = 3.0f; // 최대 3배까지만 강해짐 (밸런스 조절)
+
     private enum State { Idle, Charging, Cooldown }
     private State state = State.Idle;
     public bool IsCharging => state == State.Charging;
@@ -124,26 +130,37 @@ public class NetPlayerController : NetworkBehaviour
         }
     }
 
+    // ★ [수정] TryAction에서 콤보 계산
     public void TryAction()
     {
         if (!IsOwner) return;
 
-        // Playing 상태가 아니면 공격 불가
         if (NetGameManager.Instance != null &&
-            NetGameManager.Instance.currentNetState.Value != NetGameManager.GameState.Playing)
-        {
-            return;
-        }
+            NetGameManager.Instance.currentNetState.Value != NetGameManager.GameState.Playing) return;
 
         if (state == State.Charging)
         {
-            if (CurrentGaugeValue >= currentThreshold)
+            if (CurrentGaugeValue >= CurrentThreshold) // 성공!
             {
-                RequestAttackServerRpc();
+                comboCount++; // 콤보 증가
+
+                // UI에 콤보 표시 (멀티 매니저가 있다면)
+                if (MultiUIManager.Instance != null)
+                    MultiUIManager.Instance.UpdateComboText(comboCount);
+
+                // 서버에 공격 요청 (현재 콤보 수치에 따른 파워 계산)
+                float power = 1.0f + ((comboCount - 1) * comboBonus);
+                power = Mathf.Min(power, maxComboPower); // 최대치 제한
+
+                RequestAttackServerRpc(power); // 파워를 실어서 보냄
                 SuccessAttackLocal();
             }
-            else
+            else // 실패!
             {
+                comboCount = 0; // 콤보 초기화
+                if (MultiUIManager.Instance != null)
+                    MultiUIManager.Instance.UpdateComboText(0); // UI도 리셋
+
                 StartCoroutine(FailRoutine());
             }
         }
@@ -153,13 +170,31 @@ public class NetPlayerController : NetworkBehaviour
         }
     }
 
+    // ★ [수정] 서버로 파워값 전달
     [ServerRpc]
-    void RequestAttackServerRpc()
+    void RequestAttackServerRpc(float power)
     {
         if (myBody != null)
         {
-            myBody.PushOpponentServer();
+            // 몸체에게 계산된 파워로 밀라고 명령
+            myBody.PushOpponentServer(power);
         }
+    }
+
+    // ★ [추가] 리셋될 때 콤보도 초기화
+    [Rpc(SendTo.Owner)]
+    public void ResetPlayerStateRpc()
+    {
+        ResetDifficulty();
+        state = State.Idle;
+        CurrentGaugeValue = 0f;
+
+        // 콤보 초기화
+        comboCount = 0;
+        if (MultiUIManager.Instance != null) MultiUIManager.Instance.UpdateComboText(0);
+
+        StartCharging();
+        if (!IsServer) AdjustCameraForClient();
     }
 
     // ★ [추가] 클라이언트 -> 서버로 재시작 요청을 전달하는 중계 RPC
@@ -171,22 +206,6 @@ public class NetPlayerController : NetworkBehaviour
         {
             // 매니저에게 "나(OwnerClientId) 재시작할래"라고 보고
             NetGameManager.Instance.PlayerRequestRematch(this.OwnerClientId);
-        }
-    }
-
-    // NetGameManager가 소프트 리셋(재시작)할 때 호출하는 함수
-    [Rpc(SendTo.Owner)]
-    public void ResetPlayerStateRpc()
-    {
-        ResetDifficulty();
-        state = State.Idle;
-        CurrentGaugeValue = 0f;
-        StartCharging();
-
-        // 클라이언트라면 카메라 위치도 다시 잡아줍니다.
-        if (!IsServer)
-        {
-            AdjustCameraForClient();
         }
     }
 

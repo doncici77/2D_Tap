@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
@@ -10,7 +10,7 @@ public class SingleUIManager : MonoBehaviour
     [Header("Controls")]
     public GameObject actionButtonObj;
     public Button titleButton;
-    // ½Ì±ÛÀº Àç½ÃÀÛ ¹öÆ°ÀÌ ÇÊ¿ä ¾øÀ¸¸é ¾Æ¿¹ º¯¼ö¿¡¼­ »©°Å³ª, ¼û°ÜµÓ´Ï´Ù.
+    // ì‹±ê¸€ì€ ì¬ì‹œì‘ ë²„íŠ¼ì´ í•„ìš” ì—†ìœ¼ë©´ ì•„ì˜ˆ ë³€ìˆ˜ì—ì„œ ë¹¼ê±°ë‚˜, ìˆ¨ê²¨ë‘¡ë‹ˆë‹¤.
     public Button restartButton;
 
     [Header("Gauge Display")]
@@ -26,8 +26,12 @@ public class SingleUIManager : MonoBehaviour
     public TextMeshProUGUI roundText;
     public GameObject resultPanel;
 
-    // ½Ì±Û ÇÃ·¹ÀÌ¾î ÂüÁ¶
+    // ì‹±ê¸€ í”Œë ˆì´ì–´ ì°¸ì¡°
     public PlayerController singlePlayer;
+
+    // â˜… [ì¶”ê°€] ì½¤ë³´ í…ìŠ¤íŠ¸ (Inspector ì—°ê²° í•„ìš”!)
+    [Header("Combo Display")]
+    public TextMeshProUGUI comboText;
 
     private void Awake()
     {
@@ -40,13 +44,13 @@ public class SingleUIManager : MonoBehaviour
         HideResult();
         UpdateRoundText(1);
 
-        // ÇÃ·¹ÀÌ¾î Ã£±â
+        // í”Œë ˆì´ì–´ ì°¾ê¸°
         FindSinglePlayer();
 
-        // ¹öÆ° ¼¼ÆÃ (½Ì±Û ·ÎÁ÷)
+        // ë²„íŠ¼ ì„¸íŒ… (ì‹±ê¸€ ë¡œì§)
         SetupRapidButton();
 
-        // Å¸ÀÌÆ² ¹öÆ°
+        // íƒ€ì´í‹€ ë²„íŠ¼
         if (titleButton != null)
         {
             titleButton.onClick.AddListener(() => {
@@ -54,8 +58,11 @@ public class SingleUIManager : MonoBehaviour
             });
         }
 
-        // ½Ì±ÛÀº Àç½ÃÀÛ ¹öÆ° ¼û±è (È¤Àº ¹Ù·Î Àç½ÃÀÛ ±â´É ¿¬°á)
+        // ì‹±ê¸€ì€ ì¬ì‹œì‘ ë²„íŠ¼ ìˆ¨ê¹€ (í˜¹ì€ ë°”ë¡œ ì¬ì‹œì‘ ê¸°ëŠ¥ ì—°ê²°)
         if (restartButton != null) restartButton.gameObject.SetActive(false);
+
+        // ì‹œì‘ ì‹œ ì½¤ë³´ í…ìŠ¤íŠ¸ ìˆ¨ê¹€
+        UpdateComboText(0);
     }
 
     void Update()
@@ -69,11 +76,11 @@ public class SingleUIManager : MonoBehaviour
         if (!isPlaying)
         {
             powerGaugeSlider.value = 0f;
-            UpdateStatusText(); // »óÅÂ ÅØ½ºÆ® °»½Å
+            UpdateStatusText(); // ìƒíƒœ í…ìŠ¤íŠ¸ ê°±ì‹ 
             return;
         }
 
-        // °ÔÀÌÁö ¾÷µ¥ÀÌÆ®
+        // ê²Œì´ì§€ ì—…ë°ì´íŠ¸
         if (singlePlayer != null)
         {
             UpdateGauge(singlePlayer.IsCharging, singlePlayer.CurrentGaugeValue, singlePlayer.CurrentThreshold);
@@ -82,7 +89,7 @@ public class SingleUIManager : MonoBehaviour
         UpdateStatusText();
     }
 
-    // °ÔÀÌÁö ±×¸®´Â ÇÔ¼ö (µ¶¸³ÀûÀ¸·Î ±¸Çö)
+    // ê²Œì´ì§€ ê·¸ë¦¬ëŠ” í•¨ìˆ˜ (ë…ë¦½ì ìœ¼ë¡œ êµ¬í˜„)
     void UpdateGauge(bool isCharging, float gauge, float threshold)
     {
         if (isCharging)
@@ -141,7 +148,7 @@ public class SingleUIManager : MonoBehaviour
         if (actionButtonObj != null) actionButtonObj.SetActive(false);
         if (titleButton != null) titleButton.gameObject.SetActive(true);
 
-        // ½Ì±ÛÀº Àç½ÃÀÛ ¹öÆ° ¾È º¸ÀÌ°Ô È®½ÇÈ÷ Ã³¸®
+        // ì‹±ê¸€ì€ ì¬ì‹œì‘ ë²„íŠ¼ ì•ˆ ë³´ì´ê²Œ í™•ì‹¤íˆ ì²˜ë¦¬
         if (restartButton != null) restartButton.gameObject.SetActive(false);
 
         if (playerWin) { resultText.text = "VICTORY!"; resultText.color = Color.green; }
@@ -157,5 +164,21 @@ public class SingleUIManager : MonoBehaviour
     public void UpdateRoundText(int round)
     {
         if (roundText != null) roundText.text = $"ROUND {round}";
+    }
+
+    // â˜… [ì¶”ê°€] ì½¤ë³´ í…ìŠ¤íŠ¸ ì—…ë°ì´íŠ¸ í•¨ìˆ˜
+    public void UpdateComboText(int combo)
+    {
+        if (comboText == null) return;
+
+        if (combo > 1) // 2ì½¤ë³´ ì´ìƒì¼ ë•Œ í‘œì‹œ
+        {
+            comboText.gameObject.SetActive(true);
+            comboText.text = $"{combo} COMBO!";
+        }
+        else
+        {
+            comboText.gameObject.SetActive(false);
+        }
     }
 }

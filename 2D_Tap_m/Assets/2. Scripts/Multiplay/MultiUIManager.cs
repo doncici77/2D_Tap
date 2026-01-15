@@ -1,8 +1,8 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
-using Unity.Netcode; // ¸ÖÆ¼¿ë ÇÊ¼ö
+using Unity.Netcode; // ë©€í‹°ìš© í•„ìˆ˜
 
 public class MultiUIManager : MonoBehaviour
 {
@@ -12,7 +12,7 @@ public class MultiUIManager : MonoBehaviour
     public GameObject actionButtonObj;
     public Button restartButton;
     public Button titleButton;
-    public Button multiExitButton; // ¸ÖÆ¼ Àü¿ë ³ª°¡±â ¹öÆ°
+    public Button multiExitButton; // ë©€í‹° ì „ìš© ë‚˜ê°€ê¸° ë²„íŠ¼
 
     [Header("Gauge Display")]
     public Slider powerGaugeSlider;
@@ -26,7 +26,10 @@ public class MultiUIManager : MonoBehaviour
     public TextMeshProUGUI distanceText;
     public GameObject resultPanel;
 
-    // ¸ÖÆ¼ ÇÃ·¹ÀÌ¾î ÂüÁ¶
+    [Header("Combo Display")]
+    public TextMeshProUGUI comboText; // â˜… ì½¤ë³´ í…ìŠ¤íŠ¸ (Inspectorì—ì„œ ì—°ê²° í•„ìš”!)
+
+    // ë©€í‹° í”Œë ˆì´ì–´ ì°¸ì¡°
     public NetPlayerController netPlayer;
 
     private void Awake()
@@ -35,19 +38,19 @@ public class MultiUIManager : MonoBehaviour
         Instance = this;
     }
 
-    // NetPlayerController¿¡¼­ È£ÃâÇØÁÖ´Â ÇÔ¼ö
+    // NetPlayerControllerì—ì„œ í˜¸ì¶œí•´ì£¼ëŠ” í•¨ìˆ˜
     public void SetNetPlayer(NetPlayerController controller)
     {
         netPlayer = controller;
-        SetupRapidButton(); // ÇÃ·¹ÀÌ¾î ¿¬°áµÇ¸é ¹öÆ° ±â´É È°¼ºÈ­
-        Debug.Log($"UI: ¸ÖÆ¼ ÇÃ·¹ÀÌ¾î ¿¬°áµÊ - {controller.name}");
+        SetupRapidButton(); // í”Œë ˆì´ì–´ ì—°ê²°ë˜ë©´ ë²„íŠ¼ ê¸°ëŠ¥ í™œì„±í™”
+        Debug.Log($"UI: ë©€í‹° í”Œë ˆì´ì–´ ì—°ê²°ë¨ - {controller.name}");
     }
 
     void Start()
     {
         HideResult();
 
-        // Àç½ÃÀÛ ¹öÆ° (Àç´ë°á ¿äÃ»)
+        // ì¬ì‹œì‘ ë²„íŠ¼ (ì¬ëŒ€ê²° ìš”ì²­)
         if (restartButton != null)
         {
             restartButton.onClick.AddListener(() => {
@@ -61,11 +64,11 @@ public class MultiUIManager : MonoBehaviour
             });
         }
 
-        // Å¸ÀÌÆ² ÀÌµ¿
+        // íƒ€ì´í‹€ ì´ë™
         if (titleButton != null)
             titleButton.onClick.AddListener(() => GoToTitle());
 
-        // ´ë±â Áß ³ª°¡±â
+        // ëŒ€ê¸° ì¤‘ ë‚˜ê°€ê¸°
         if (multiExitButton != null)
             multiExitButton.onClick.AddListener(() => GoToTitle());
     }
@@ -79,7 +82,7 @@ public class MultiUIManager : MonoBehaviour
     {
         if (NetGameManager.Instance == null) return;
 
-        // ÇÃ·¹ÀÌ¾î ³õÃÆÀ¸¸é ´Ù½Ã Ã£±â
+        // í”Œë ˆì´ì–´ ë†“ì³¤ìœ¼ë©´ ë‹¤ì‹œ ì°¾ê¸°
         if (netPlayer == null) FindMyNetPlayer();
 
         bool isPlaying = (NetGameManager.Instance.currentNetState.Value == NetGameManager.GameState.Playing);
@@ -98,7 +101,7 @@ public class MultiUIManager : MonoBehaviour
         UpdateBattleStatus();
     }
 
-    // °ÔÀÌÁö ±×¸®´Â ÇÔ¼ö (½Ì±Û°ú ¶È°°Áö¸¸ º¹»çÇØ¼­ µ¶¸³ÀûÀ¸·Î »ç¿ë)
+    // ê²Œì´ì§€ ê·¸ë¦¬ëŠ” í•¨ìˆ˜ (ì‹±ê¸€ê³¼ ë˜‘ê°™ì§€ë§Œ ë³µì‚¬í•´ì„œ ë…ë¦½ì ìœ¼ë¡œ ì‚¬ìš©)
     void UpdateGauge(bool isCharging, float gauge, float threshold)
     {
         if (isCharging)
@@ -153,11 +156,11 @@ public class MultiUIManager : MonoBehaviour
     {
         if (distanceText == null) return;
 
-        // 1. ÅØ½ºÆ® °»½Å (°¡Àå ¸ÕÀú ½ÇÇà!)
+        // 1. í…ìŠ¤íŠ¸ ê°±ì‹  (ê°€ì¥ ë¨¼ì € ì‹¤í–‰!)
         string status = NetGameManager.Instance.GetBattleStatusText();
         if (!string.IsNullOrEmpty(status)) distanceText.text = status;
 
-        // 2. ¹öÆ° Ç¥½Ã ¿©ºÎ ÆÇ´Ü
+        // 2. ë²„íŠ¼ í‘œì‹œ ì—¬ë¶€ íŒë‹¨
         bool isWaiting = (distanceText.text == "WAITING FOR OPPONENT..." || distanceText.text == "WAITING...");
 
         if (multiExitButton != null)
@@ -172,7 +175,7 @@ public class MultiUIManager : MonoBehaviour
         if (actionButtonObj != null) actionButtonObj.SetActive(false);
         if (titleButton != null) titleButton.gameObject.SetActive(true);
 
-        // ¸ÖÆ¼´Â Àç´ë°á ¹öÆ° º¸¿©ÁÜ
+        // ë©€í‹°ëŠ” ì¬ëŒ€ê²° ë²„íŠ¼ ë³´ì—¬ì¤Œ
         if (restartButton != null) restartButton.gameObject.SetActive(true);
 
         if (playerWin) { resultText.text = "VICTORY!"; resultText.color = Color.green; }
@@ -183,5 +186,21 @@ public class MultiUIManager : MonoBehaviour
     {
         resultPanel.SetActive(false);
         if (actionButtonObj != null) actionButtonObj.SetActive(true);
+    }
+
+    // â˜… [ì¶”ê°€] ì½¤ë³´ í…ìŠ¤íŠ¸ ê°±ì‹  í•¨ìˆ˜
+    public void UpdateComboText(int combo)
+    {
+        if (comboText == null) return;
+
+        if (combo > 1) // 2ì½¤ë³´ ì´ìƒì¼ ë•Œë§Œ í‘œì‹œ
+        {
+            comboText.gameObject.SetActive(true);
+            comboText.text = $"{combo} COMBO!";
+        }
+        else
+        {
+            comboText.gameObject.SetActive(false); // 0~1ì½¤ë³´ì¼ ë• ìˆ¨ê¹€
+        }
     }
 }

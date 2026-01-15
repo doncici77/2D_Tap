@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using Unity.Netcode;
 using UnityEngine.UI;
 using Unity.Services.Core;
@@ -14,33 +14,34 @@ using TMPro;
 public class LobbyManager : MonoBehaviour
 {
     [Header("UI References")]
-    public Button hostButton;      // ¹æ ¸¸µé±â ¹öÆ°
-    public Button refreshButton;   // ¸ñ·Ï »õ·Î°íÄ§ ¹öÆ°
-    public GameObject lobbyPanel;  // ·Îºñ ÀüÃ¼ UI
-    public Transform roomListContent; // Scroll ViewÀÇ Content
-    public RoomItem roomItemPrefab;   // ¹æ ¹öÆ° ÇÁ¸®ÆÕ
-    public TMP_InputField roomNameInput; // (¼±ÅÃ) ¹æ Á¦¸ñ ÀÔ·ÂÄ­
+    public Button hostButton;      // ë°© ë§Œë“¤ê¸° ë²„íŠ¼
+    public Button refreshButton;   // ëª©ë¡ ìƒˆë¡œê³ ì¹¨ ë²„íŠ¼
+    public GameObject lobbyPanel;  // ë¡œë¹„ ì „ì²´ UI
+    public Transform roomListContent; // Scroll Viewì˜ Content
+    public RoomItem roomItemPrefab;   // ë°© ë²„íŠ¼ í”„ë¦¬íŒ¹
+    public TMP_InputField roomNameInput; // (ì„ íƒ) ë°© ì œëª© ì…ë ¥ì¹¸
+    public GameObject loadingPanel;
 
     private void Start()
     {
         hostButton.onClick.AddListener(CreateLobby);
         refreshButton.onClick.AddListener(RefreshLobbyList);
 
-        // ¡Ú¡Ú¡Ú [ÇÙ½É ¼öÁ¤] Àç½ÃÀÛ °¨Áö ·ÎÁ÷ Ãß°¡ ¡Ú¡Ú¡Ú
-        // NetworkManager°¡ ÀÖ°í, ÀÌ¹Ì ¿¬°áµÈ »óÅÂ(Host ¶Ç´Â Client)¶ó¸é?
-        // -> ÀÌ°ÍÀº "°ÔÀÓ Áß Àç½ÃÀÛ" »óÈ²ÀÔ´Ï´Ù. UI¸¦ ¼û±é´Ï´Ù.
+        // â˜…â˜…â˜… [í•µì‹¬ ìˆ˜ì •] ì¬ì‹œì‘ ê°ì§€ ë¡œì§ ì¶”ê°€ â˜…â˜…â˜…
+        // NetworkManagerê°€ ìˆê³ , ì´ë¯¸ ì—°ê²°ëœ ìƒíƒœ(Host ë˜ëŠ” Client)ë¼ë©´?
+        // -> ì´ê²ƒì€ "ê²Œì„ ì¤‘ ì¬ì‹œì‘" ìƒí™©ì…ë‹ˆë‹¤. UIë¥¼ ìˆ¨ê¹ë‹ˆë‹¤.
         if (NetworkManager.Singleton != null &&
            (NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsClient))
         {
-            Debug.Log("[Lobby] Àç½ÃÀÛ °¨ÁöµÊ! ·Îºñ UI¸¦ ¼û±é´Ï´Ù.");
-            lobbyPanel.SetActive(false); // UI ²ô±â
+            Debug.Log("[Lobby] ì¬ì‹œì‘ ê°ì§€ë¨! ë¡œë¹„ UIë¥¼ ìˆ¨ê¹ë‹ˆë‹¤.");
+            lobbyPanel.SetActive(false); // UI ë„ê¸°
         }
         else
         {
-            // ¿¬°á ¾È µÈ »óÅÂ¶ó¸é? -> "°ÔÀÓÀ» Ã³À½ ÄÒ" »óÈ²ÀÔ´Ï´Ù.
-            Debug.Log("[Lobby] °ÔÀÓ ½ÃÀÛ. ·Îºñ UI¸¦ ÄÕ´Ï´Ù.");
-            lobbyPanel.SetActive(true); // UI ÄÑ±â
-            Authenticate(); // ·Î±×ÀÎ ½Ãµµ
+            // ì—°ê²° ì•ˆ ëœ ìƒíƒœë¼ë©´? -> "ê²Œì„ì„ ì²˜ìŒ ì¼ " ìƒí™©ì…ë‹ˆë‹¤.
+            Debug.Log("[Lobby] ê²Œì„ ì‹œì‘. ë¡œë¹„ UIë¥¼ ì¼­ë‹ˆë‹¤.");
+            lobbyPanel.SetActive(true); // UI ì¼œê¸°
+            Authenticate(); // ë¡œê·¸ì¸ ì‹œë„
         }
     }
 
@@ -50,16 +51,30 @@ public class LobbyManager : MonoBehaviour
         if (!AuthenticationService.Instance.IsSignedIn)
         {
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
-            Debug.Log($"[Lobby] ·Î±×ÀÎ ¿Ï·á! ID: {AuthenticationService.Instance.PlayerId}");
+            Debug.Log($"[Lobby] ë¡œê·¸ì¸ ì™„ë£Œ! ID: {AuthenticationService.Instance.PlayerId}");
         }
     }
 
     public async void CreateLobby()
     {
+        // â˜… 1. ë¡œë”© íŒ¨ë„ ì¼œê¸° (í™”ë©´ ì „ì²´ë¥¼ ë§‰ì•„ì„œ í´ë¦­ ë°©ì§€)
+        if (loadingPanel != null) loadingPanel.SetActive(true);
+
+        // í˜¹ì‹œ ëª¨ë¥´ë‹ˆ ë²„íŠ¼ë„ êº¼ë‘ 
+        hostButton.interactable = false;
+
+        string startingSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+
         try
         {
-            Debug.Log("[Lobby] ¹æ »ı¼º Áß...");
-            Allocation allocation = await RelayService.Instance.CreateAllocationAsync(2); // 2ÀÎ¿ë
+            Debug.Log("[Lobby] ë°© ìƒì„± ì¤‘...");
+
+            Allocation allocation = await RelayService.Instance.CreateAllocationAsync(2);
+
+            // ì”¬ ë³€ê²½ ì²´í¬
+            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != startingSceneName)
+                throw new System.Exception("ì”¬ ë³€ê²½ë¨");
+
             string relayCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
 
             NetworkManager.Singleton.GetComponent<UnityTransport>().SetHostRelayData(
@@ -75,20 +90,35 @@ public class LobbyManager : MonoBehaviour
             };
 
             Lobby lobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, 2, options);
-            Debug.Log($"[Lobby] ¹æ »ı¼ºµÊ: {lobby.Name}");
+
+            // ì”¬ ë³€ê²½ ì²´í¬ 2
+            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != startingSceneName)
+                throw new System.Exception("ì”¬ ë³€ê²½ë¨");
+
+            Debug.Log($"[Lobby] ë°© ìƒì„±ë¨: {lobby.Name}");
 
             NetworkManager.Singleton.StartHost();
-            lobbyPanel.SetActive(false);
+
+            // â˜… ì„±ê³µí•˜ë©´ ë¡œë¹„ UI ì „ì²´ê°€ êº¼ì§€ë¯€ë¡œ LoadingPanelë„ ìì—°ìŠ¤ëŸ½ê²Œ ì‚¬ë¼ì§
+            lobbyPanel.SetActive(false); 
+            loadingPanel.SetActive(false);
             StartCoroutine(HeartbeatLobbyCoroutine(lobby.Id, 15));
         }
-        catch (System.Exception e) { Debug.LogError($"¹æ ¸¸µé±â ½ÇÆĞ: {e.Message}"); }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"ë°© ë§Œë“¤ê¸° ì‹¤íŒ¨/ì·¨ì†Œ: {e.Message}");
+
+            // â˜… 2. ì‹¤íŒ¨í–ˆì„ ë•ŒëŠ” ë°˜ë“œì‹œ ë¡œë”© íŒ¨ë„ì„ êº¼ì¤˜ì•¼ ìœ ì €ê°€ ë‹¤ì‹œ ì¡°ì‘ ê°€ëŠ¥
+            if (loadingPanel != null) loadingPanel.SetActive(false);
+            hostButton.interactable = true;
+        }
     }
 
     public async void RefreshLobbyList()
     {
         try
         {
-            foreach (Transform child in roomListContent) Destroy(child.gameObject); // ±âÁ¸ ¸ñ·Ï »èÁ¦
+            foreach (Transform child in roomListContent) Destroy(child.gameObject); // ê¸°ì¡´ ëª©ë¡ ì‚­ì œ
 
             QueryLobbiesOptions options = new QueryLobbiesOptions();
             options.Count = 10;
@@ -97,7 +127,7 @@ public class LobbyManager : MonoBehaviour
             };
 
             QueryResponse response = await LobbyService.Instance.QueryLobbiesAsync(options);
-            Debug.Log($"[Lobby] ¹æ {response.Results.Count}°³ ¹ß°ß");
+            Debug.Log($"[Lobby] ë°© {response.Results.Count}ê°œ ë°œê²¬");
 
             foreach (Lobby lobby in response.Results)
             {
@@ -105,7 +135,7 @@ public class LobbyManager : MonoBehaviour
                 newItem.Setup(lobby, this);
             }
         }
-        catch (System.Exception e) { Debug.LogError($"¸ñ·Ï °»½Å ½ÇÆĞ: {e.Message}"); }
+        catch (System.Exception e) { Debug.LogError($"ëª©ë¡ ê°±ì‹  ì‹¤íŒ¨: {e.Message}"); }
     }
 
     public async void JoinRoom(Lobby lobby)
@@ -125,7 +155,7 @@ public class LobbyManager : MonoBehaviour
             NetworkManager.Singleton.StartClient();
             lobbyPanel.SetActive(false);
         }
-        catch (System.Exception e) { Debug.LogError($"ÀÔÀå ½ÇÆĞ: {e.Message}"); }
+        catch (System.Exception e) { Debug.LogError($"ì…ì¥ ì‹¤íŒ¨: {e.Message}"); }
     }
 
     System.Collections.IEnumerator HeartbeatLobbyCoroutine(string lobbyId, float waitTimeSeconds)
