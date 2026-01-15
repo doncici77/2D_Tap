@@ -38,9 +38,9 @@ public class NetPlayerController : NetworkBehaviour
             StartCharging();
 
             // UI 매니저 연결
-            if (UIManager.Instance != null)
+            if (MultiUIManager.Instance != null)
             {
-                UIManager.Instance.SetNetPlayer(this);
+                MultiUIManager.Instance.SetNetPlayer(this);
             }
 
             // 서버(Host)는 기본 카메라(앞면)를 쓰고, 클라이언트(Client)는 뒷면 카메라를 씀
@@ -71,9 +71,9 @@ public class NetPlayerController : NetworkBehaviour
             StartCharging();
 
             // UI 매니저 연결
-            if (UIManager.Instance != null)
+            if (MultiUIManager.Instance != null)
             {
-                UIManager.Instance.SetNetPlayer(this);
+                MultiUIManager.Instance.SetNetPlayer(this);
             }
         }
 

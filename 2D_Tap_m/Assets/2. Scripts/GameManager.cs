@@ -51,7 +51,7 @@ public class GameManager : MonoBehaviour
 
         // ★ [추가] 라운드 시작 알림
         Debug.Log($"=== Round {currentRound} Start! ===");
-        if (UIManager.Instance != null) UIManager.Instance.UpdateRoundText(currentRound);
+        if (SingleUIManager.Instance != null) SingleUIManager.Instance.UpdateRoundText(currentRound);
 
         // 1. 위치 초기화
         playerTransform.position = new Vector3(-startDistance, playerTransform.position.y, 0);
@@ -110,7 +110,7 @@ public class GameManager : MonoBehaviour
         {
             // ★ [패배] 진짜 게임 오버
             currentState = GameState.GameOver;
-            UIManager.Instance.ShowResult(false); // 패배 UI 표시
+            SingleUIManager.Instance.ShowResult(false); // 패배 UI 표시
         }
     }
 
@@ -118,7 +118,7 @@ public class GameManager : MonoBehaviour
     IEnumerator PrepareNextRound()
     {
         currentState = GameState.GameOver; // 잠시 조작 불가
-        UIManager.Instance.ShowResult(true);
+        SingleUIManager.Instance.ShowResult(true);
 
         // 승리 메시지 잠깐 보여주기 (선택사항)
         yield return new WaitForSeconds(2.0f);
@@ -132,7 +132,7 @@ public class GameManager : MonoBehaviour
         // 3. AI 난이도 강화 (생각하는 시간 단축)
         if (aiController != null) aiController.LevelUpAI();
 
-        UIManager.Instance.HideResult();
+        SingleUIManager.Instance.HideResult();
 
         // 4. 인트로 다시 시작 (위치 리셋 포함됨)
         StartCoroutine(IntroSequence());

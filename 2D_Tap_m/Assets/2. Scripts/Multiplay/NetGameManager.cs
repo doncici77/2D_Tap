@@ -198,10 +198,10 @@ public class NetGameManager : NetworkBehaviour
     private void GameOverClientRpc(ulong winnerId)
     {
         bool amIWinner = (NetworkManager.Singleton.LocalClientId == winnerId);
-        if (UIManager.Instance != null)
+        if (MultiUIManager.Instance != null)
         {
             // 결과창 띄우기
-            UIManager.Instance.ShowResult(amIWinner);
+            MultiUIManager.Instance.ShowResult(amIWinner);
 
             // 만약 승리했는데 이유가 '탈주'라면 텍스트를 좀 바꿔주면 좋음 (선택사항)
             // 지금은 그냥 심플하게 승/패만 띄웁니다.
@@ -249,10 +249,10 @@ public class NetGameManager : NetworkBehaviour
     [Rpc(SendTo.ClientsAndHost)]
     private void ResetUIClientRpc()
     {
-        if (UIManager.Instance != null)
+        if (MultiUIManager.Instance != null)
         {
-            UIManager.Instance.HideResult();
-            UIManager.Instance.UpdateRoundText(1);
+            MultiUIManager.Instance.HideResult();
+            MultiUIManager.Instance.UpdateRoundText(1);
         }
     }
 
