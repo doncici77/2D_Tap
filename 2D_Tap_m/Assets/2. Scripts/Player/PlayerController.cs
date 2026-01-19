@@ -22,7 +22,6 @@ public class PlayerController : MonoBehaviour
     [Header("Combo System")]
     private int comboCount = 0;
     public float comboBonus = 0.2f; // 콤보당 20% 파워 증가
-    public float maxComboPower = 3.0f; // 최대 3배
 
     private enum State { Idle, Charging, Cooldown }
     private State state = State.Idle;
@@ -92,7 +91,6 @@ public class PlayerController : MonoBehaviour
     {
         // ★ [수정] 콤보 파워 계산 후 전달
         float power = 1.0f + ((comboCount - 1) * comboBonus);
-        power = Mathf.Min(power, maxComboPower);
 
         myBody.PushOpponent(power); // 파워 실어서 밀기!
 
@@ -131,9 +129,8 @@ public class PlayerController : MonoBehaviour
     {
         currentSpeed = initialGaugeSpeed;
         currentThreshold = initialThreshold;
-
-        // ★ [추가] 난이도 리셋될 때 콤보도 초기화
         comboCount = 0;
+
         if (SingleUIManager.Instance != null)
             SingleUIManager.Instance.UpdateComboText(0);
 

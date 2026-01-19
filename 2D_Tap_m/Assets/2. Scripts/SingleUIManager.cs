@@ -59,7 +59,13 @@ public class SingleUIManager : MonoBehaviour
         }
 
         // 싱글은 재시작 버튼 숨김 (혹은 바로 재시작 기능 연결)
-        if (restartButton != null) restartButton.gameObject.SetActive(false);
+        if (restartButton != null)
+        {
+            restartButton.gameObject.SetActive(false);
+            restartButton.onClick.AddListener(() => {
+                if (GameManager.Instance != null) GameManager.Instance.RestartGame();
+            });
+        }
 
         // 시작 시 콤보 텍스트 숨김
         UpdateComboText(0);

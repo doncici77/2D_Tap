@@ -25,7 +25,6 @@ public class GameManager : MonoBehaviour
     public AIController aiController;
 
     [Header("Map Settings")]
-    public float tileSize = 1.5f;
     public float fallLineX = 8.0f;
 
     [Header("Intro Settings")]
@@ -159,12 +158,5 @@ public class GameManager : MonoBehaviour
         if (Mathf.Abs(playerDist - aiDist) < 1.0f) return "EQUAL";
         else if (aiDist > playerDist) return "ADVANTAGE";
         else return "DEFENSE!";
-    }
-
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawLine(new Vector3(-fallLineX, -5, 0), new Vector3(-fallLineX, 5, 0));
-        Gizmos.DrawLine(new Vector3(fallLineX, -5, 0), new Vector3(fallLineX, 5, 0));
     }
 }

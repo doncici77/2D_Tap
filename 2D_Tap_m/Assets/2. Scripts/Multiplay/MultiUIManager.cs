@@ -1,8 +1,10 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
+﻿using TMPro;
+using Unity.Netcode;
+using Unity.Services.Lobbies;
+using UnityEngine;
 using UnityEngine.EventSystems;
-using Unity.Netcode; // 멀티용 필수
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class MultiUIManager : MonoBehaviour
 {
@@ -73,9 +75,37 @@ public class MultiUIManager : MonoBehaviour
             multiExitButton.onClick.AddListener(() => GoToTitle());
     }
 
-    void GoToTitle()
+    async void GoToTitle()
     {
-        if (NetGameManager.Instance != null) NetGameManager.Instance.GoToTitle();
+        // 1. 내가 호스트인지 확인
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsHost)
+        {
+            // 저장해둔 Lobby ID가 있다면 방 삭제 시도
+            if (!string.IsNullOrEmpty(LobbyManager.CurrentLobbyId))
+            {
+                try
+                {
+                    Debug.Log("[MultiUI] 호스트가 방을 삭제합니다...");
+                    await LobbyService.Instance.DeleteLobbyAsync(LobbyManager.CurrentLobbyId);
+                    LobbyManager.CurrentLobbyId = null; // ID 초기화
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError($"방 삭제 실패: {e.Message}");
+                }
+            }
+        }
+
+        // 2. 네트워크 연결 종료 (호스트면 서버 닫힘, 클라면 연결 끊김)
+        if (NetworkManager.Singleton != null)
+        {
+            NetworkManager.Singleton.Shutdown();
+        }
+
+        // 3. 타이틀 씬으로 이동
+        // (NetGameManager가 파괴되지 않도록 설정되어 있다면 여기서 씬 이동만 해도 됨)
+        // 하지만 확실하게 하기 위해 SceneManager 직접 사용 권장
+        SceneManager.LoadScene("Title");
     }
 
     void Update()
