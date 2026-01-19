@@ -171,7 +171,7 @@ public class NetPlayerController : NetworkBehaviour
     }
 
     // ★ [수정] 서버로 파워값 전달
-    [ServerRpc]
+    [Rpc(SendTo.Server)]
     void RequestAttackServerRpc(float power)
     {
         if (myBody != null)
@@ -198,7 +198,7 @@ public class NetPlayerController : NetworkBehaviour
     }
 
     // ★ [추가] 클라이언트 -> 서버로 재시작 요청을 전달하는 중계 RPC
-    [ServerRpc] // 기본값(RequireOwnership = true) 사용. 내 캐릭터니까 가능!
+    [Rpc(SendTo.Server)]
     public void SendRematchRequestServerRpc()
     {
         // 서버에서 실행됨
