@@ -12,6 +12,9 @@ public class NetGameManager : NetworkBehaviour
     public NetworkVariable<GameState> currentNetState = new NetworkVariable<GameState>(
         GameState.Intro, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
+    public NetworkVariable<int> p1Score = new NetworkVariable<int>(0);
+    public NetworkVariable<int> p2Score = new NetworkVariable<int>(0);
+
     [Header("Game Settings")]
     public float fallLineX = 8.0f;
     public string titleSceneName = "TitleScene";
@@ -85,6 +88,13 @@ public class NetGameManager : NetworkBehaviour
                     EndGame(player2.OwnerClientId);
                 }
             }
+            else if (currentNetState.Value == GameState.GameOver)
+            {
+                // 남은 사람에게 "상대방이 나갔습니다" 알림 후 타이틀로 보내기
+                // 혹은 "혼자 남았습니다" UI 띄우기
+                Debug.Log("결과창에서 상대방 탈주! 방을 깹니다.");
+                ShutdownRoomClientRpc(); // 모두 타이틀로 보냄
+            }
         }
         // 2. 내가 클라이언트인 경우: 호스트(서버)가 나갔는지 체크
         else
@@ -96,6 +106,13 @@ public class NetGameManager : NetworkBehaviour
                 GoToTitle(); // 타이틀 화면으로 강제 이동
             }
         }
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void ShutdownRoomClientRpc()
+    {
+        NetworkManager.Singleton.Shutdown();
+        SceneManager.LoadScene(titleSceneName);
     }
 
     IEnumerator FindPlayersRoutine()
@@ -192,6 +209,12 @@ public class NetGameManager : NetworkBehaviour
         if (currentNetState.Value == GameState.GameOver) return;
         currentNetState.Value = GameState.GameOver;
         GameOverClientRpc(winnerId);
+
+        if (winnerId == player1.OwnerClientId) p1Score.Value++;
+        else p2Score.Value++;
+
+        // UI에 점수 표시하라고 Rpc 보내기
+        UpdateScoreClientRpc(p1Score.Value, p2Score.Value);
     }
 
     [Rpc(SendTo.ClientsAndHost)]
@@ -215,10 +238,29 @@ public class NetGameManager : NetworkBehaviour
         if (player1 != null && clientId == player1.OwnerClientId) p1Rematch = true;
         if (player2 != null && clientId == player2.OwnerClientId) p2Rematch = true;
 
+        // ★ 추가: 누가 눌렀는지 모두에게 알려줌 (UI 갱신용)
+        UpdateRematchStateClientRpc(p1Rematch, p2Rematch);
+
         if (p1Rematch && p2Rematch)
         {
-            RestartGame();
+            // 잠시 대기 후 시작 (바로 시작하면 UI 볼 틈이 없음)
+            StartCoroutine(DelayedRestart());
         }
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void UpdateRematchStateClientRpc(bool p1Ready, bool p2Ready)
+    {
+        if (MultiUIManager.Instance != null)
+        {
+            MultiUIManager.Instance.UpdateRematchUI(p1Ready, p2Ready);
+        }
+    }
+
+    IEnumerator DelayedRestart()
+    {
+        yield return new WaitForSeconds(1.0f); // 1초 뒤 시작
+        RestartGame();
     }
 
     public void RestartGame()
@@ -291,5 +333,14 @@ public class NetGameManager : NetworkBehaviour
         if (Mathf.Abs(myDist - enemyDist) < 1.0f) return "EQUAL";
         else if (enemyDist > myDist) return "ADVANTAGE";
         else return "DEFENSE!";
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void UpdateScoreClientRpc(int s1, int s2)
+    {
+        if (MultiUIManager.Instance != null)
+        {
+            MultiUIManager.Instance.UpdateScoreUI(s1, s2);
+        }
     }
 }

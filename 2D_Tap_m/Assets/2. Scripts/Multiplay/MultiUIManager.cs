@@ -31,6 +31,13 @@ public class MultiUIManager : MonoBehaviour
     [Header("Combo Display")]
     public TextMeshProUGUI comboText; // ★ 콤보 텍스트 (Inspector에서 연결 필요!)
 
+    [Header("Score Info")] // ★ [추가] 점수 표시용 텍스트
+    public TextMeshProUGUI p1ScoreText;
+    public TextMeshProUGUI p2ScoreText;
+
+    [Header("Rematch Info")] // ★ [추가] 재경기 상태 표시 텍스트
+    public TextMeshProUGUI rematchStatusText;
+
     // 멀티 플레이어 참조
     public NetPlayerController netPlayer;
 
@@ -216,6 +223,10 @@ public class MultiUIManager : MonoBehaviour
     {
         resultPanel.SetActive(false);
         if (actionButtonObj != null) actionButtonObj.SetActive(true);
+
+        // 버튼 다시 켜주기
+        if (restartButton != null) restartButton.interactable = true;
+        if (rematchStatusText != null) rematchStatusText.text = "";
     }
 
     // ★ [추가] 콤보 텍스트 갱신 함수
@@ -231,6 +242,53 @@ public class MultiUIManager : MonoBehaviour
         else
         {
             comboText.gameObject.SetActive(false); // 0~1콤보일 땐 숨김
+        }
+    }
+
+    // 점수 업데이트 함수 (ME / ENEMY 표시 추가)
+    public void UpdateScoreUI(int s1, int s2)
+    {
+        // 1. 현재 네트워크 매니저가 없으면 중단 (안전장치)
+        if (NetworkManager.Singleton == null) return;
+
+        // 2. 내가 호스트인지 확인
+        bool amIHost = NetworkManager.Singleton.IsServer;
+
+        // 3. 라벨 결정 로직
+        // - 내가 호스트라면? P1이 '나(ME)', P2가 '적(ENEMY)'
+        // - 내가 게스트라면? P1이 '적(ENEMY)', P2가 '나(ME)'
+        string p1Label = amIHost ? "ME" : "ENEMY";
+        string p2Label = amIHost ? "ENEMY" : "ME";
+
+        // 4. 텍스트 갱신 (이름: 점수 형태)
+        if (p1ScoreText != null) p1ScoreText.text = $"{p1Label}: {s1}";
+        if (p2ScoreText != null) p2ScoreText.text = $"{p2Label}: {s2}";
+    }
+
+    // ★ [추가] 재경기 UI 업데이트 (누가 수락했는지 버튼과 텍스트 제어)
+    public void UpdateRematchUI(bool p1Ready, bool p2Ready)
+    {
+        bool isServer = NetworkManager.Singleton.IsServer;
+        bool amIReady = isServer ? p1Ready : p2Ready;
+        bool opponentReady = isServer ? p2Ready : p1Ready;
+
+        // 1. 내가 눌렀으면 버튼 비활성화 (중복 클릭 방지)
+        if (amIReady)
+        {
+            restartButton.interactable = false;
+            if (rematchStatusText != null) rematchStatusText.text = "Waiting for Opponent...";
+        }
+
+        // 2. 상대방도 눌렀다면?
+        if (opponentReady)
+        {
+            if (rematchStatusText != null) rematchStatusText.text = "Opponent wants Rematch!";
+        }
+
+        // 3. 둘 다 눌렀으면? (어차피 게임 재시작되면서 UI 초기화됨)
+        if (p1Ready && p2Ready)
+        {
+            if (rematchStatusText != null) rematchStatusText.text = "Game Restarting...";
         }
     }
 }
