@@ -37,19 +37,17 @@ public class CharacterSelectUI : MonoBehaviour
         if (closePopupButton != null)
             closePopupButton.onClick.AddListener(ClosePopup);
 
-        // 4. 초기 상태 적용 (시작할 땐 팝업 닫고, 버튼 이미지 갱신)
+        // 4. 초기 상태 적용
         ClosePopup();
         UpdateUI();
     }
 
-    // 팝업 열기
     public void OpenPopup()
     {
         if (popupPanel != null) popupPanel.SetActive(true);
-        UpdateUI(); // 열 때 UI 한 번 갱신
+        UpdateUI();
     }
 
-    // 팝업 닫기
     public void ClosePopup()
     {
         if (popupPanel != null) popupPanel.SetActive(false);
@@ -57,57 +55,88 @@ public class CharacterSelectUI : MonoBehaviour
 
     void GenerateButtons()
     {
-        // 기존 버튼 삭제 (중복 방지)
         foreach (Transform child in buttonContainer) Destroy(child.gameObject);
         generatedButtons.Clear();
 
-        // characterSprites.Length 대신 DB 사용
         if (characterDB == null) return;
 
-        // 스프라이트 개수만큼 버튼 생성
         for (int i = 0; i < characterDB.Count; i++)
         {
-            int index = i; // 클로저 문제 해결용 로컬 변수
+            int index = i;
 
             GameObject newBtnObj = Instantiate(buttonPrefab, buttonContainer);
             Button btn = newBtnObj.GetComponent<Button>();
             Image btnImage = newBtnObj.GetComponent<Image>();
 
-            // 버튼 이미지 설정
             if (btnImage != null)
             {
-                btnImage.sprite = characterDB.GetSkin(index); // ★ 변경점
+                btnImage.sprite = characterDB.GetSkin(index);
                 btnImage.preserveAspect = true;
             }
 
-            // 클릭 시 "캐릭터 선택" 함수 실행
+            // 클릭 시 로직 연결
             btn.onClick.AddListener(() => OnSelectCharacter(index));
 
             generatedButtons.Add(btn);
         }
     }
 
+    // ★ [수정됨] 클릭 시 광고 여부를 판단하는 함수
     void OnSelectCharacter(int index)
+    {
+        // 이미 선택된 캐릭터를 또 누르면 무시 (선택사항)
+        if (index == currentSelection) return;
+
+        // ★ 조건: 4번째 캐릭터(인덱스 3) 이상이면 광고 보여주기
+        if (index >= 3)
+        {
+            Debug.Log($"[Ad] {index}번 캐릭터 선택 시도 -> 광고 요청");
+
+            if (AdMobManager.Instance != null)
+            {
+                // 광고를 보여주고, 닫으면(콜백) ConfirmSelection을 실행해라!
+                AdMobManager.Instance.ShowAd(() =>
+                {
+                    ConfirmSelection(index);
+                });
+            }
+            else
+            {
+                // 광고 매니저가 없으면(테스트 등) 그냥 선택
+                Debug.LogWarning("AdMobManager가 없습니다. 광고 없이 진행합니다.");
+                ConfirmSelection(index);
+            }
+        }
+        else
+        {
+            // 0, 1, 2번 캐릭터는 그냥 바로 선택
+            ConfirmSelection(index);
+        }
+    }
+
+    // ★ [추가됨] 실제로 저장하고 UI 바꾸는 진짜 선택 함수
+    // (광고를 다 보고 닫았거나, 무료 캐릭터일 때 호출됨)
+    void ConfirmSelection(int index)
     {
         currentSelection = index;
 
-        // 저장 (매우 중요)
+        // 저장
         PlayerPrefs.SetInt("MyCharacterID", currentSelection);
         PlayerPrefs.Save();
 
-        Debug.Log($"캐릭터 {index}번 선택됨!");
+        Debug.Log($"캐릭터 {index}번 선택 완료 및 저장됨!");
         UpdateUI();
     }
 
     void UpdateUI()
     {
-        if (mainPreviewImage != null)
-            mainPreviewImage.sprite = characterDB.GetSkin(currentSelection); // ★ 변경점
+        // 팝업 내 큰 이미지 갱신
+        if (mainPreviewImage != null && characterDB != null)
+            mainPreviewImage.sprite = characterDB.GetSkin(currentSelection);
 
-        // 3. 팝업 내 리스트 버튼 상태 갱신 (선택된 것만 어둡게 처리 등)
+        // 버튼 활성화/비활성화 상태 갱신
         for (int i = 0; i < generatedButtons.Count; i++)
         {
-            // 선택된 버튼은 클릭 못하게 막아서 "선택됨" 표시
             generatedButtons[i].interactable = (i != currentSelection);
         }
     }
