@@ -183,6 +183,8 @@ MonoBehaviour:
   initialThreshold: 0.5
   thresholdStep: 0.05
   maxThreshold: 0.95
+  comboBonus: 0.2
+  maxComboPower: 3
 --- !u!114 &2063005701117702224
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -197,7 +199,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   opponent: {fileID: 0}
+  bodyRenderer: {fileID: 8889975203691824244}
+  characterDB: {fileID: 11400000, guid: 8ea638a7ac3569c41a8e21888ff57587, type: 2}
   moveSpeed: 10
   tileSize: 1.5
+  netSkinId:
+    m_InternalValue: 0
   netTargetPos:
     m_InternalValue: {x: 0, y: 0, z: 0}
