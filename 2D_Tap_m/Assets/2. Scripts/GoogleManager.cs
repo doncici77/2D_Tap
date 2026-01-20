@@ -11,8 +11,8 @@ public class GoogleManager : MonoBehaviour
     public TextMeshProUGUI logText;
     public GameObject loginPanel;
 
-    public GameObject guestLoginButton;  // 게스트 입장 버튼
-    public GameObject googleLoginButton; // 구글 로그인(재시도) 버튼
+    public GameObject guestLoginButton;
+    public GameObject googleLoginButton;
 
     private void Awake()
     {
@@ -22,23 +22,30 @@ public class GoogleManager : MonoBehaviour
 
     void Start()
     {
-        // 1. 시작 시 버튼 숨기기
+        // 1. 시작하면 무조건 로그인 패널 켜기 (재로그인 느낌)
+        if (loginPanel != null) loginPanel.SetActive(true);
+
+        // 2. 버튼은 일단 숨김 (자동 접속 시도 중)
         if (guestLoginButton != null) guestLoginButton.SetActive(false);
         if (googleLoginButton != null) googleLoginButton.SetActive(false);
 
-        // 안드로이드 폰에서만 실행
-        // 설정(Configuration) 코드 삭제됨 -> 바로 Activate만 하면 끝!
+#if UNITY_EDITOR
+        Debug.Log("에디터 환경: 게스트 모드 자동 진입");
+        Invoke("LoginAsGuest", 1.0f); // 1초 뒤 입장 (로그인하는 척)
+#else
+        // 안드로이드 설정
         PlayGamesPlatform.DebugLogEnabled = true;
         PlayGamesPlatform.Activate();
 
+        // ★ [변경점] "이미 로그인 됐나?" 확인 안 함! 무조건 로그인 시도!
         SignIn();
+#endif
     }
 
     public void SignIn()
     {
         if (logText != null) logText.text = "Logging in...";
 
-        // 재시도 시 버튼 다시 숨기기
         if (guestLoginButton != null) guestLoginButton.SetActive(false);
         if (googleLoginButton != null) googleLoginButton.SetActive(false);
 
@@ -52,15 +59,14 @@ public class GoogleManager : MonoBehaviour
             string name = PlayGamesPlatform.Instance.GetUserDisplayName();
             Debug.Log($"Google Login Success: {name}");
 
-            // 성공하면 패널 닫기
+            // ★ 로그인 성공 시에만 패널 닫기
             if (loginPanel != null) loginPanel.SetActive(false);
         }
         else
         {
-            // 실패 시 메시지 변경
             if (logText != null) logText.text = "Login failed. Select login method.";
 
-            // ★ 실패했으니 유저에게 선택권을 줌 (둘 다 켜기)
+            // 실패 시 버튼 띄우기
             if (guestLoginButton != null) guestLoginButton.SetActive(true);
             if (googleLoginButton != null) googleLoginButton.SetActive(true);
         }
@@ -69,11 +75,18 @@ public class GoogleManager : MonoBehaviour
     public void LoginAsGuest()
     {
         string guestName = "Guest_" + Random.Range(1000, 9999);
-        Debug.Log($"Guest Login: {guestName}");
-
         PlayerPrefs.SetString("PlayerName", guestName);
 
-        // 게스트 입장 시 패널 닫기
         if (loginPanel != null) loginPanel.SetActive(false);
+    }
+
+    // ★ [추가됨] 앱이 꺼질 때 강제로 로그아웃 (정보 삭제)
+    private void OnApplicationQuit()
+    {
+#if !UNITY_EDITOR
+        // 구글 로그아웃 처리
+        PlayGamesPlatform.Instance.SignOut();
+        Debug.Log("앱 종료: 로그아웃 완료");
+#endif
     }
 }
