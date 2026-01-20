@@ -178,14 +178,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b03b09548706be644bfd82ef207e135e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  characterDB: {fileID: 11400000, guid: 8ea638a7ac3569c41a8e21888ff57587, type: 2}
   popupPanel: {fileID: 1987385274}
   openPopupButton: {fileID: 1186637512}
   closePopupButton: {fileID: 841417619}
   buttonContainer: {fileID: 1258180642}
   buttonPrefab: {fileID: 5579566690766838350, guid: bb10f0624f689d749b8af05b021904f6, type: 3}
-  characterSprites:
-  - {fileID: 21300000, guid: 038c41d735e0e7c458c06a7c5555550b, type: 3}
-  - {fileID: 21300000, guid: 4627148f18c14984ab7591a10d710027, type: 3}
   mainPreviewImage: {fileID: 404005698}
 --- !u!1 &13242650
 GameObject:

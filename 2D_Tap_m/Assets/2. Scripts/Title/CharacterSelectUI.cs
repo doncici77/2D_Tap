@@ -4,6 +4,9 @@ using System.Collections.Generic;
 
 public class CharacterSelectUI : MonoBehaviour
 {
+    [Header("Data Source")]
+    public CharacterDatabase characterDB;
+
     [Header("Popup Settings")]
     public GameObject popupPanel;   // 캐릭터 선택 팝업창 (Panel)
     public Button openPopupButton;  // 타이틀 화면에 있는 '캐릭터 변경' 버튼
@@ -12,7 +15,6 @@ public class CharacterSelectUI : MonoBehaviour
     [Header("Generation Settings")]
     public Transform buttonContainer; // 팝업 안의 버튼들이 생성될 부모 (Grid)
     public GameObject buttonPrefab;   // 복제해서 사용할 버튼 프리팹
-    public Sprite[] characterSprites; // 캐릭터 이미지 목록 (Inspector에서 추가)
 
     [Header("Preview (Optional)")]
     public Image mainPreviewImage;    // 팝업 내에서 크게 보여줄 미리보기 이미지 (없어도 됨)
@@ -59,8 +61,11 @@ public class CharacterSelectUI : MonoBehaviour
         foreach (Transform child in buttonContainer) Destroy(child.gameObject);
         generatedButtons.Clear();
 
+        // characterSprites.Length 대신 DB 사용
+        if (characterDB == null) return;
+
         // 스프라이트 개수만큼 버튼 생성
-        for (int i = 0; i < characterSprites.Length; i++)
+        for (int i = 0; i < characterDB.Count; i++)
         {
             int index = i; // 클로저 문제 해결용 로컬 변수
 
@@ -71,7 +76,7 @@ public class CharacterSelectUI : MonoBehaviour
             // 버튼 이미지 설정
             if (btnImage != null)
             {
-                btnImage.sprite = characterSprites[index];
+                btnImage.sprite = characterDB.GetSkin(index); // ★ 변경점
                 btnImage.preserveAspect = true;
             }
 
@@ -96,12 +101,8 @@ public class CharacterSelectUI : MonoBehaviour
 
     void UpdateUI()
     {
-        // 1. 팝업 내 미리보기 이미지 변경
         if (mainPreviewImage != null)
-        {
-            mainPreviewImage.sprite = characterSprites[currentSelection];
-            mainPreviewImage.preserveAspect = true;
-        }
+            mainPreviewImage.sprite = characterDB.GetSkin(currentSelection); // ★ 변경점
 
         // 3. 팝업 내 리스트 버튼 상태 갱신 (선택된 것만 어둡게 처리 등)
         for (int i = 0; i < generatedButtons.Count; i++)

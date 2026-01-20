@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: CharacterDatabase
   m_EditorClassIdentifier: 
   skins:
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 21300000, guid: 038c41d735e0e7c458c06a7c5555550b, type: 3}
+  - {fileID: 21300000, guid: 4627148f18c14984ab7591a10d710027, type: 3}

@@ -912,6 +912,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   opponent: {fileID: 181662627887479079}
+  bodyRenderer: {fileID: 0}
+  characterDB: {fileID: 0}
   moveSpeed: 10
   tileSize: 1.5
 --- !u!114 &114868601233769131
@@ -1022,6 +1024,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   opponent: {fileID: 1581789606}
+  bodyRenderer: {fileID: 5090276461956910975}
+  characterDB: {fileID: 11400000, guid: 8ea638a7ac3569c41a8e21888ff57587, type: 2}
   moveSpeed: 10
   tileSize: 1.5
 --- !u!114 &248221436888465145
@@ -2490,7 +2494,7 @@ GameObject:
   - component: {fileID: 7488826098481442123}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
