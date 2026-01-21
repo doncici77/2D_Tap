@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "563787028344",
+    "project_id": "just-tap-7bb95",
+    "storage_bucket": "just-tap-7bb95.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:563787028344:android:2c334dfe225d3d2c9cda8d",
+        "android_client_info": {
+          "package_name": "com.KHo_Studio"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCcEob7mRzsorQwcKTG2feR0tgDn-eYlMc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
