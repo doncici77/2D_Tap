@@ -1,8 +1,9 @@
-﻿using UnityEngine;
-using GooglePlayGames;
-using Firebase;
+﻿using Firebase;
 using Firebase.Database;
 using Firebase.Extensions; // 람다식 사용을 위해 필요
+using GooglePlayGames;
+using System;
+using UnityEngine;
 
 public class DataManager : MonoBehaviour
 {
@@ -13,6 +14,8 @@ public class DataManager : MonoBehaviour
 
     // 현재 내 캐릭터 ID (메모리)
     public int currentCharacterID = 0;
+
+    public event Action<int> OnCharacterDataLoaded;
 
     void Awake()
     {
@@ -55,13 +58,8 @@ public class DataManager : MonoBehaviour
         }
         else
         {
-            // 게스트 유저 -> 캐릭터 0번으로 초기화 (저장 안 함)
             Debug.Log("게스트 로그인: 캐릭터를 기본값(0)으로 설정합니다.");
-            currentCharacterID = 0;
-
-            // 로컬(PlayerPrefs)에도 0번으로 덮어씌움
-            PlayerPrefs.SetInt("MyCharacterID", 0);
-            PlayerPrefs.Save();
+            UpdateLocalCharacter(0); // ★ 로직 분리함
         }
     }
 
@@ -82,20 +80,17 @@ public class DataManager : MonoBehaviour
                 DataSnapshot snapshot = task.Result;
                 if (snapshot.Exists) // 저장된 데이터가 있다!
                 {
-                    // DB에서 가져온 값으로 설정
                     int dbCharIndex = int.Parse(snapshot.Value.ToString());
-                    currentCharacterID = dbCharIndex;
-
-                    // 로컬에도 동기화
-                    PlayerPrefs.SetInt("MyCharacterID", dbCharIndex);
-                    PlayerPrefs.Save();
-
                     Debug.Log($"DB 로드 완료! 내 캐릭터: {dbCharIndex}");
+
+                    // ★ DB 데이터로 업데이트 및 UI 알림
+                    UpdateLocalCharacter(dbCharIndex);
                 }
                 else // 저장된 게 없다 (첫 접속)
                 {
                     Debug.Log("신규 유저입니다. 캐릭터 0번으로 시작.");
-                    SaveCharacterToFirebase(0); // 0번으로 DB 생성
+                    SaveCharacterToFirebase(0);
+                    UpdateLocalCharacter(0);
                 }
             }
         });
@@ -106,16 +101,25 @@ public class DataManager : MonoBehaviour
     // =========================================================
     public void SaveCharacter(int newCharIndex)
     {
-        // 1. 일단 메모리랑 로컬에 반영
-        currentCharacterID = newCharIndex;
-        PlayerPrefs.SetInt("MyCharacterID", newCharIndex);
-        PlayerPrefs.Save();
+        // 1. 로컬 업데이트 및 저장
+        UpdateLocalCharacter(newCharIndex);
 
         // 2. 구글 유저만 DB에 저장
         if (PlayGamesPlatform.Instance.IsAuthenticated())
         {
             SaveCharacterToFirebase(newCharIndex);
         }
+    }
+
+    // ★ 중복 코드를 줄이고 이벤트를 호출하는 내부 함수
+    private void UpdateLocalCharacter(int index)
+    {
+        currentCharacterID = index;
+        PlayerPrefs.SetInt("MyCharacterID", index);
+        PlayerPrefs.Save();
+
+        // ★ [핵심] "데이터 바뀜! 듣고 있는 UI들은 화면 갱신해라!" 라고 방송
+        OnCharacterDataLoaded?.Invoke(index);
     }
 
     private void SaveCharacterToFirebase(int charIndex)
