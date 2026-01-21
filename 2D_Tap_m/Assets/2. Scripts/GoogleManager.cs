@@ -76,6 +76,10 @@ public class GoogleManager : MonoBehaviour
             PlayerPrefs.SetString("LastLoginType", "Google");
             PlayerPrefs.Save();
 
+            // ★ [추가] 구글 유저니까 데이터 불러와! (true)
+            if (DataManager.Instance != null)
+                DataManager.Instance.OnLoginSuccess(true);
+
             if (loginPanel != null) loginPanel.SetActive(false);
         }
         else
@@ -101,6 +105,10 @@ public class GoogleManager : MonoBehaviour
         // ★ [저장] 나 게스트로 로그인했어! 기억해!
         PlayerPrefs.SetString("LastLoginType", "Guest");
         PlayerPrefs.Save();
+
+        // ★ [추가] 게스트니까 초기화해! (false)
+        if (DataManager.Instance != null)
+            DataManager.Instance.OnLoginSuccess(false);
 
         Debug.Log($"Guest Login: {guestName}");
 

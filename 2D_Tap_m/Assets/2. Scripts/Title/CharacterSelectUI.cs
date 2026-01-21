@@ -143,9 +143,23 @@ public class CharacterSelectUI : MonoBehaviour
 
     void ConfirmSelection(int index)
     {
+        // 1. 현재 선택된 캐릭터 변수 업데이트
         currentSelection = index;
-        PlayerPrefs.SetInt("MyCharacterID", currentSelection);
-        PlayerPrefs.Save();
+
+        // 2. 저장 로직 (매니저에게 위임)
+        if (DataManager.Instance != null)
+        {
+            // 매니저가 있으면: 로컬 + 파이어베이스 둘 다 알아서 저장해줌
+            DataManager.Instance.SaveCharacter(index);
+        }
+        else
+        {
+            // 매니저가 없을 때(비상용): 로컬에만 직접 저장
+            PlayerPrefs.SetInt("MyCharacterID", index);
+            PlayerPrefs.Save();
+        }
+
+        // 3. UI 갱신
         UpdateUI();
     }
 
