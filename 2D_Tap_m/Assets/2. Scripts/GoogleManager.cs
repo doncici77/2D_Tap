@@ -1,4 +1,5 @@
-﻿using Firebase.Auth;
+﻿using Firebase; // FirebaseException 처리를 위해 추가
+using Firebase.Auth;
 using GooglePlayGames;
 using GooglePlayGames.BasicApi;
 using System.Collections;
@@ -12,7 +13,6 @@ public class GoogleManager : MonoBehaviour
     [Header("UI References")]
     public TextMeshProUGUI logText;
     public GameObject loginPanel;
-
     public GameObject guestLoginButton;
     public GameObject googleLoginButton;
 
@@ -28,32 +28,39 @@ public class GoogleManager : MonoBehaviour
         if (guestLoginButton != null) guestLoginButton.SetActive(false);
         if (googleLoginButton != null) googleLoginButton.SetActive(false);
 
-        // ★ [변경] v11 버전은 설정 코드가 필요 없습니다.
-        // 그냥 활성화(Activate)만 하면, 아까 Android Setup에서 입력한 ID를 알아서 씁니다.
         PlayGamesPlatform.DebugLogEnabled = true;
         PlayGamesPlatform.Activate();
 
 #if UNITY_EDITOR
         Invoke("LoginAsGuest", 0.5f);
 #else
-        // 1. 이미 구글에 연결되어 있다면? -> 바로 파이어베이스 연동 시도
-        if (PlayGamesPlatform.Instance.IsAuthenticated())
-        {
-            Debug.Log("이미 구글 로그인 상태입니다.");
-            StartCoroutine(TryFirebaseLogin()); 
-            return;
-        }
-
-        // 2. 연결 안 됨 -> 마지막 로그인 방식 확인
         string lastLoginType = PlayerPrefs.GetString("LastLoginType", "");
+        
+        // ★ [디버그] 저장된 로그인 타입 확인
+        Debug.Log($"[System] 저장된 로그인 타입: {(string.IsNullOrEmpty(lastLoginType) ? "없음" : lastLoginType)}");
 
         if (lastLoginType == "Guest")
         {
             LoginAsGuest();
         }
+        else if (lastLoginType == "Google")
+        {
+            if (PlayGamesPlatform.Instance.IsAuthenticated())
+            {
+                Debug.Log("[System] GPGS 이미 연결됨 -> 파이어베이스 연동 시작");
+                StartCoroutine(TryFirebaseLogin());
+            }
+            else
+            {
+                Debug.Log("[System] GPGS 연결 끊김 -> 다시 로그인 시도");
+                SignIn();
+            }
+        }
         else
         {
-            SignIn();
+            Debug.Log("[System] 로그아웃 상태 -> 버튼 활성화");
+            SetLoginButtons(true);
+            if (logText != null) logText.text = "Welcome! Please Login.";
         }
 #endif
     }
@@ -61,9 +68,9 @@ public class GoogleManager : MonoBehaviour
     public void SignIn()
     {
         if (logText != null) logText.text = "Logging in...";
-        if (guestLoginButton != null) guestLoginButton.SetActive(false);
-        if (googleLoginButton != null) googleLoginButton.SetActive(false);
+        SetLoginButtons(false);
 
+        Debug.Log("[System] GPGS 인증(Authenticate) 요청...");
         PlayGamesPlatform.Instance.Authenticate(ProcessAuthentication);
     }
 
@@ -72,16 +79,14 @@ public class GoogleManager : MonoBehaviour
         if (status == SignInStatus.Success)
         {
             string name = PlayGamesPlatform.Instance.GetUserDisplayName();
-            Debug.Log($"Google Login Success: {name}");
-
-            // 구글 로그인 성공 후 -> 파이어베이스 로그인 시도
+            Debug.Log($"[System] GPGS 로그인 성공! (유저명: {name})");
             StartCoroutine(TryFirebaseLogin());
         }
         else
         {
-            if (logText != null) logText.text = "Login Failed. Choose Mode.";
-            if (guestLoginButton != null) guestLoginButton.SetActive(true);
-            if (googleLoginButton != null) googleLoginButton.SetActive(true);
+            Debug.LogError($"[System] GPGS 로그인 실패 (Status: {status})");
+            if (logText != null) logText.text = "Login Failed. Try Again.";
+            SetLoginButtons(true);
         }
     }
 
@@ -97,24 +102,21 @@ public class GoogleManager : MonoBehaviour
         PlayerPrefs.SetString("LastLoginType", "Guest");
         PlayerPrefs.Save();
 
-        // 게스트는 파이어베이스 로그인 없이 바로 데이터 처리 (false)
         if (DataManager.Instance != null)
             DataManager.Instance.OnLoginSuccess(false);
 
-        Debug.Log($"Guest Login: {guestName}");
-
+        Debug.Log($"[System] 게스트 로그인 완료: {guestName}");
         if (loginPanel != null) loginPanel.SetActive(false);
     }
 
     IEnumerator TryFirebaseLogin()
     {
         if (logText != null) logText.text = "Linking Firebase...";
+        Debug.Log("[System] 1단계: 구글 서버 인증 코드 요청 중...");
 
         string authCode = "";
-
-        // ★ [핵심] v11에서는 이 함수가 서버 인증 코드를 받아옵니다.
-        // forceRefreshToken: true로 해야 코드를 확실하게 받아옵니다.
         bool isFinished = false;
+
         PlayGamesPlatform.Instance.RequestServerSideAccess(true, code =>
         {
             authCode = code;
@@ -123,41 +125,62 @@ public class GoogleManager : MonoBehaviour
 
         yield return new WaitUntil(() => isFinished);
 
+        // ★ [디버그] 인증 코드 획득 여부 확인
         if (string.IsNullOrEmpty(authCode))
         {
-            Debug.LogError("인증 코드를 못 가져왔습니다. (Android Setup에 Web Client ID 넣었는지 확인!)");
+            Debug.LogError("[System] 1단계 실패: 인증 코드가 비어있습니다. (Web Client ID 불일치 가능성)");
             if (logText != null) logText.text = "Auth Code Error";
-
-            if (guestLoginButton != null) guestLoginButton.SetActive(true);
-            if (googleLoginButton != null) googleLoginButton.SetActive(true);
+            SetLoginButtons(true);
             yield break;
         }
 
-        // 파이어베이스 자격증 생성 및 로그인
+        Debug.Log($"[System] 1단계 성공: 인증 코드 획득 완료! (앞 5자리: {authCode.Substring(0, Mathf.Min(authCode.Length, 5))}...)");
+        Debug.Log("[System] 2단계: 파이어베이스 자격증명(Credential) 생성 중...");
+
         FirebaseAuth auth = FirebaseAuth.DefaultInstance;
         Credential credential = PlayGamesAuthProvider.GetCredential(authCode);
 
+        Debug.Log("[System] 3단계: 파이어베이스 로그인(SignIn) 시도...");
         var task = auth.SignInWithCredentialAsync(credential);
+
         yield return new WaitUntil(() => task.IsCompleted);
 
-        if (task.IsCanceled || task.IsFaulted)
+        if (task.IsCanceled)
         {
-            Debug.LogError("파이어베이스 로그인 실패: " + task.Exception);
-            if (logText != null) logText.text = "Firebase Login Failed";
+            Debug.LogError("[System] 3단계 실패: 로그인이 취소되었습니다.");
+            if (logText != null) logText.text = "Login Canceled";
+            SetLoginButtons(true);
+        }
+        else if (task.IsFaulted)
+        {
+            // ★ [핵심] 에러 내용을 뜯어서 깔끔하게 보여줍니다.
+            // AggregateException 안쪽에 있는 진짜 범인(FirebaseException)을 꺼냅니다.
+            FirebaseException firebaseEx = task.Exception.GetBaseException() as FirebaseException;
 
-            if (guestLoginButton != null) guestLoginButton.SetActive(true);
-            if (googleLoginButton != null) googleLoginButton.SetActive(true);
+            if (firebaseEx != null)
+            {
+                // 파이어베이스가 주는 정확한 에러 코드 (예: InvalidCredential, UserDisabled 등)
+                Debug.LogError($"[System] 3단계 실패 (Firebase Error): {firebaseEx.Message} [Code: {firebaseEx.ErrorCode}]");
+                if (logText != null) logText.text = $"Error: {firebaseEx.ErrorCode}";
+            }
+            else
+            {
+                // 그 외 일반 에러 (네트워크 등)
+                Debug.LogError($"[System] 3단계 실패 (Unknown Error): {task.Exception.Message}");
+                if (logText != null) logText.text = "Login Error";
+            }
+
+            SetLoginButtons(true);
         }
         else
         {
-            // 성공!
+            // 성공
             FirebaseUser newUser = task.Result;
-            Debug.Log($"파이어베이스 로그인 완료! User ID: {newUser.UserId}");
+            Debug.Log($"[System] 모든 단계 성공! 파이어베이스 접속 완료. (UID: {newUser.UserId})");
 
             PlayerPrefs.SetString("LastLoginType", "Google");
             PlayerPrefs.Save();
 
-            // 구글 유저 모드(true)로 데이터 로드
             if (DataManager.Instance != null)
                 DataManager.Instance.OnLoginSuccess(true);
 
@@ -165,22 +188,24 @@ public class GoogleManager : MonoBehaviour
         }
     }
 
+    // 버튼 끄고 켜는 코드 중복 제거용 함수
+    private void SetLoginButtons(bool isActive)
+    {
+        if (guestLoginButton != null) guestLoginButton.SetActive(isActive);
+        if (googleLoginButton != null) googleLoginButton.SetActive(isActive);
+    }
+
     public void OnClickLogOut()
     {
-        Debug.Log("로그아웃 시도...");
+        Debug.Log("[System] 로그아웃 진행...");
 
-        // 1. 파이어베이스 로그아웃 (이게 진짜 게임 로그아웃)
         FirebaseAuth.DefaultInstance.SignOut();
-
-        // 2. 자동 로그인 기록 삭제
         PlayerPrefs.DeleteKey("LastLoginType");
         PlayerPrefs.Save();
 
-        // 3. 데이터 초기화
         if (DataManager.Instance != null)
             DataManager.Instance.currentCharacterID = 0;
 
-        // 4. 게임 재시작 (로그인 화면으로 돌아가기)
         UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
     }
 }
