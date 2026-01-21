@@ -12,6 +12,7 @@ public class GoogleManager : MonoBehaviour
 
     [Header("UI References")]
     public TextMeshProUGUI logText;
+    public TextMeshProUGUI userIdText; // ★ [추가] 유저 아이디 띄울 텍스트  
     public GameObject loginPanel;
     public GameObject guestLoginButton;
     public GameObject googleLoginButton;
@@ -48,6 +49,11 @@ public class GoogleManager : MonoBehaviour
             if (PlayGamesPlatform.Instance.IsAuthenticated())
             {
                 Debug.Log("[System] GPGS 이미 연결됨 -> 파이어베이스 연동 시작");
+
+                // ★ [추가] 자동 로그인 시에도 닉네임 표시
+                if (userIdText != null)
+                    userIdText.text = "ID: " + PlayGamesPlatform.Instance.GetUserDisplayName();
+
                 StartCoroutine(TryFirebaseLogin());
             }
             else
@@ -104,6 +110,10 @@ public class GoogleManager : MonoBehaviour
 
         if (DataManager.Instance != null)
             DataManager.Instance.OnLoginSuccess(false);
+
+        // ★ [추가] UI에 "Guest" 표시
+        if (userIdText != null)
+            userIdText.text = "ID: Guest";
 
         Debug.Log($"[System] 게스트 로그인 완료: {guestName}");
         if (loginPanel != null) loginPanel.SetActive(false);
@@ -177,6 +187,16 @@ public class GoogleManager : MonoBehaviour
             // 성공
             FirebaseUser newUser = task.Result;
             Debug.Log($"[System] 모든 단계 성공! 파이어베이스 접속 완료. (UID: {newUser.UserId})");
+
+            // ★ [추가] UI에 "구글 닉네임" 표시
+            if (userIdText != null)
+            {
+                // 방법 A: 구글 닉네임 (예: 박광호) 보여주기 - 추천!
+                userIdText.text = "ID: " + PlayGamesPlatform.Instance.GetUserDisplayName();
+
+                // 방법 B: 만약 이메일이나 고유 ID를 보여주고 싶다면 아래 주석 해제
+                // userIdText.text = newUser.UserId; 
+            }
 
             PlayerPrefs.SetString("LastLoginType", "Google");
             PlayerPrefs.Save();
