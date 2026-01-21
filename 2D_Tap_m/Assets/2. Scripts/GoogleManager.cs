@@ -164,4 +164,23 @@ public class GoogleManager : MonoBehaviour
             if (loginPanel != null) loginPanel.SetActive(false);
         }
     }
+
+    public void OnClickLogOut()
+    {
+        Debug.Log("로그아웃 시도...");
+
+        // 1. 파이어베이스 로그아웃 (이게 진짜 게임 로그아웃)
+        FirebaseAuth.DefaultInstance.SignOut();
+
+        // 2. 자동 로그인 기록 삭제
+        PlayerPrefs.DeleteKey("LastLoginType");
+        PlayerPrefs.Save();
+
+        // 3. 데이터 초기화
+        if (DataManager.Instance != null)
+            DataManager.Instance.currentCharacterID = 0;
+
+        // 4. 게임 재시작 (로그인 화면으로 돌아가기)
+        UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+    }
 }
