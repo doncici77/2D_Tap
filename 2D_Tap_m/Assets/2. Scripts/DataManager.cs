@@ -35,7 +35,8 @@ public class DataManager : MonoBehaviour
             if (dependencyStatus == DependencyStatus.Available)
             {
                 // 연결 성공! DB 참조 가져오기
-                dbReference = FirebaseDatabase.DefaultInstance.RootReference;
+                // (복사한 주소를 아래 큰따옴표 안에 넣으세요)
+                dbReference = FirebaseDatabase.GetInstance("https://just-tap-7bb95-default-rtdb.firebaseio.com/").RootReference; // 예시 주소임! 본인 것 넣기
                 isFirebaseReady = true;
                 Debug.Log("파이어베이스 연결 성공!");
             }
