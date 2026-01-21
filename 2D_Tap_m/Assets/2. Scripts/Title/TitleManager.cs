@@ -1,13 +1,21 @@
-using UnityEngine;
-using UnityEngine.SceneManagement; // ¾À ÀÌµ¿À» À§ÇØ ÇÊ¼ö
+ï»¿using UnityEngine;
+using UnityEngine.SceneManagement; // ì”¬ ì´ë™ì„ ìœ„í•´ í•„ìˆ˜
 
 public class TitleManager : MonoBehaviour
 {
     [Header("Settings")]
-    public string gameSceneName = "GameScene"; // ÀÌµ¿ÇÒ °ÔÀÓ ¾À ÀÌ¸§ (Á¤È®È÷ Àû¾î¾ß ÇÔ)
-    public string multiSceneName = "MultiScene"; // ÀÌµ¿ÇÒ °ÔÀÓ ¾À ÀÌ¸§ (Á¤È®È÷ Àû¾î¾ß ÇÔ)
+    public string gameSceneName = "GameScene"; // ì´ë™í•  ê²Œì„ ì”¬ ì´ë¦„ (ì •í™•íˆ ì ì–´ì•¼ í•¨)
+    public string multiSceneName = "MultiScene"; // ì´ë™í•  ê²Œì„ ì”¬ ì´ë¦„ (ì •í™•íˆ ì ì–´ì•¼ í•¨)
 
-    // ½ÃÀÛ ¹öÆ°¿¡ ¿¬°áÇÒ ÇÔ¼ö
+    private void Start()
+    {
+        // ëª¨ë°”ì¼ì—ì„œë„ 60í”„ë ˆì„ ëª©í‘œë¡œ ì„¤ì •
+        Application.targetFrameRate = 60;
+        // ìˆ˜ì§ ë™ê¸°í™” ë„ê¸° (ëª¨ë°”ì¼ì—ì„œ í”„ë ˆì„ ì œí•œê³¼ ì¶©ëŒ ë°©ì§€)
+        QualitySettings.vSyncCount = 0;
+    }
+
+    // ì‹œì‘ ë²„íŠ¼ì— ì—°ê²°í•  í•¨ìˆ˜
     public void OnStartBtnClick()
     {
         SceneManager.LoadScene(gameSceneName);
@@ -16,12 +24,5 @@ public class TitleManager : MonoBehaviour
     public void OnMultiBtnClick()
     {
         SceneManager.LoadScene(multiSceneName);
-    }
-
-    // Á¾·á ¹öÆ°¿¡ ¿¬°áÇÒ ÇÔ¼ö
-    public void OnExitBtnClick()
-    {
-        Debug.Log("°ÔÀÓ Á¾·á (¿¡µğÅÍ¿¡¼­´Â ¾È ²¨Áü)");
-        Application.Quit();
     }
 }

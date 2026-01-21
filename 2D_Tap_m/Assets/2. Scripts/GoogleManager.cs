@@ -25,50 +25,46 @@ public class GoogleManager : MonoBehaviour
 
     void Start()
     {
+        // 1. 일단 패널은 켜두고, 버튼은 상황 봐서 켭니다.
         if (loginPanel != null) loginPanel.SetActive(true);
         if (guestLoginButton != null) guestLoginButton.SetActive(false);
         if (googleLoginButton != null) googleLoginButton.SetActive(false);
 
+        // 2. GPGS 초기화
         PlayGamesPlatform.DebugLogEnabled = true;
         PlayGamesPlatform.Activate();
 
-#if UNITY_EDITOR
-        Invoke("LoginAsGuest", 0.5f);
-#else
+        // 3. 마지막 로그인 기록 확인
         string lastLoginType = PlayerPrefs.GetString("LastLoginType", "");
-        
-        // ★ [디버그] 저장된 로그인 타입 확인
         Debug.Log($"[System] 저장된 로그인 타입: {(string.IsNullOrEmpty(lastLoginType) ? "없음" : lastLoginType)}");
 
-        if (lastLoginType == "Guest")
+        // ★ [핵심 변경] "구글"일 때만 자동 로그인 시도.
+        // 그 외(게스트, 처음 접속 등)에는 버튼 띄우고 대기.
+        if (lastLoginType == "Google")
         {
-            LoginAsGuest();
-        }
-        else if (lastLoginType == "Google")
-        {
+            Debug.Log("[System] 기존 구글 유저 감지 -> 자동 로그인 시도");
+
+            // GPGS가 이미 인증된 상태인지 체크 (보통 앱 재시작시 false일 확률 높음 -> SignIn 호출)
             if (PlayGamesPlatform.Instance.IsAuthenticated())
             {
-                Debug.Log("[System] GPGS 이미 연결됨 -> 파이어베이스 연동 시작");
-
-                // ★ [추가] 자동 로그인 시에도 닉네임 표시
                 if (userIdText != null)
                     userIdText.text = "ID: " + PlayGamesPlatform.Instance.GetUserDisplayName();
-
                 StartCoroutine(TryFirebaseLogin());
             }
             else
             {
-                Debug.Log("[System] GPGS 연결 끊김 -> 다시 로그인 시도");
+                // 구글 기록이 있으면 바로 구글 로그인 창을 띄웁니다 (Silent Login)
                 SignIn();
             }
         }
         else
         {
-            Debug.Log("[System] 로그아웃 상태 -> 버튼 활성화");
+            // 구글 기록이 없거나, 마지막이 게스트였으면 -> "로그인 화면에서 대기"
+            Debug.Log("[System] 자동 로그인 조건 아님 -> 로그인 버튼 활성화");
+
             SetLoginButtons(true);
             if (logText != null) logText.text = "Welcome! Please Login.";
         }
-#endif
     }
 
     public void SignIn()
