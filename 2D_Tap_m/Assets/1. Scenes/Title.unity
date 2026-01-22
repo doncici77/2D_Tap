@@ -4060,6 +4060,73 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentCharacterID: 0
+--- !u!1 &1701576872
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1701576873}
+  - component: {fileID: 1701576874}
+  m_Layer: 0
+  m_Name: SoundManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1701576873
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1701576872}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1701576874
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1701576872}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3cdcfea15a491434c8d26939f259ffff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  globalBgmVolume: 1
+  globalSfxVolume: 1
+  lobbyBGM: {fileID: 0}
+  inGameBGM: {fileID: 0}
+  sfxList:
+  - name: Click
+    sfxType: 0
+    clip: {fileID: 8300000, guid: c6600c5491e54a044b5fa6d406a6e20b, type: 3}
+  - name: Success
+    sfxType: 1
+    clip: {fileID: 0}
+  - name: Fail
+    sfxType: 2
+    clip: {fileID: 0}
+  - name: Attack
+    sfxType: 3
+    clip: {fileID: 0}
+  - name: Win
+    sfxType: 4
+    clip: {fileID: 0}
+  - name: Lose
+    sfxType: 5
+    clip: {fileID: 0}
 --- !u!1 &1752852623
 GameObject:
   m_ObjectHideFlags: 0
@@ -5395,3 +5462,4 @@ SceneRoots:
   - {fileID: 2085948467}
   - {fileID: 1433409488}
   - {fileID: 1545115894}
+  - {fileID: 1701576873}

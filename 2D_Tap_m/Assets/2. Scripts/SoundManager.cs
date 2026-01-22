@@ -1,4 +1,16 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
+using System; // Enum 처리를 위해 필요
+
+public enum SFX
+{
+    Click,      // 클릭
+    Success,    // 성공
+    Fail,       // 실패
+    Attack,     // 공격
+    Win,       // 승리
+    Lose      // 패배
+}
 
 public class SoundManager : MonoBehaviour
 {
@@ -8,20 +20,28 @@ public class SoundManager : MonoBehaviour
     [Range(0f, 1f)] public float globalBgmVolume = 1f;
     [Range(0f, 1f)] public float globalSfxVolume = 1f;
 
-    [Header("Registered Clips (Inspector에서 할당)")]
-    public AudioClip lobbyBGM;  // 로비 배경음
-    public AudioClip inGameBGM; // 인게임 배경음
-    public AudioClip buttonClickSFX; // 버튼 클릭음
-    public AudioClip successSFX; // 성공 효과음
-    public AudioClip failSFX;    // 실패 효과음
+    [Header("BGM Clips")]
+    public AudioClip lobbyBGM;
+    public AudioClip inGameBGM;
 
-    // 내부에서 사용할 오디오 소스들
+    [System.Serializable]
+    public class SfxData // struct 대신 class로 변경 (인스펙터 수정 용이성)
+    {
+        [HideInInspector] public string name; // 인스펙터에서 보기 편하게 이름 표시용
+        public SFX sfxType;
+        public AudioClip clip;
+    }
+
+    [Header("SFX List (자동으로 관리됩니다)")]
+    public List<SfxData> sfxList = new List<SfxData>();
+
+    // 내부 검색용 딕셔너리
+    private Dictionary<SFX, AudioClip> sfxDictionary = new Dictionary<SFX, AudioClip>();
     private AudioSource bgmPlayer;
     private AudioSource sfxPlayer;
 
     private void Awake()
     {
-        // 1. 싱글톤 설정 (씬 이동해도 파괴 안 됨)
         if (Instance == null)
         {
             Instance = this;
@@ -33,73 +53,98 @@ public class SoundManager : MonoBehaviour
             return;
         }
 
-        // 2. 오디오 소스 컴포넌트 자동 생성
-        // BGM용: 반복 재생 필요
         bgmPlayer = gameObject.AddComponent<AudioSource>();
         bgmPlayer.loop = true;
-        bgmPlayer.playOnAwake = false;
 
-        // SFX용: 중첩 재생 필요 (PlayOneShot 사용)
         sfxPlayer = gameObject.AddComponent<AudioSource>();
         sfxPlayer.loop = false;
-        sfxPlayer.playOnAwake = false;
+
+        // 리스트 데이터를 딕셔너리로 변환
+        foreach (var data in sfxList)
+        {
+            if (!sfxDictionary.ContainsKey(data.sfxType))
+            {
+                sfxDictionary.Add(data.sfxType, data.clip);
+            }
+        }
     }
 
     private void Start()
     {
-        // 시작하자마자 볼륨 적용
         SetBGMVolume(globalBgmVolume);
         SetSFXVolume(globalSfxVolume);
     }
 
     // ============================================
-    // 🎵 BGM 관련 함수
+    // ★ [핵심] 에디터 자동 동기화 코드
     // ============================================
+    private void OnValidate()
+    {
+        // 1. 현재 Enum 목록을 다 가져옵니다.
+        var enumValues = Enum.GetValues(typeof(SFX));
 
+        // 2. 리스트가 비어있거나 개수가 다르면 (Enum이 추가/삭제되면) 다시 맞춥니다.
+        if (sfxList.Count != enumValues.Length)
+        {
+            List<SfxData> newList = new List<SfxData>();
+
+            // 기존에 설정해둔 클립들은 백업해둡니다. (삭제 방지)
+            Dictionary<SFX, AudioClip> backup = new Dictionary<SFX, AudioClip>();
+            foreach (var data in sfxList)
+            {
+                if (!backup.ContainsKey(data.sfxType))
+                    backup.Add(data.sfxType, data.clip);
+            }
+
+            // Enum 순서대로 리스트를 다시 만듭니다.
+            foreach (SFX sfx in enumValues)
+            {
+                SfxData newData = new SfxData();
+                newData.sfxType = sfx;
+                newData.name = sfx.ToString(); // 인스펙터 이름표 달기
+
+                // 백업된 클립이 있으면 복구, 없으면 빈칸
+                if (backup.ContainsKey(sfx))
+                    newData.clip = backup[sfx];
+
+                newList.Add(newData);
+            }
+
+            sfxList = newList;
+        }
+        else
+        {
+            // 개수는 맞는데 이름표(Label)만 갱신이 필요할 때
+            for (int i = 0; i < sfxList.Count; i++)
+            {
+                if (i < enumValues.Length)
+                {
+                    sfxList[i].name = enumValues.GetValue(i).ToString();
+                    sfxList[i].sfxType = (SFX)enumValues.GetValue(i);
+                }
+            }
+        }
+    }
+
+    // ... (이하 PlaySFX, PlayBGM 등 함수들은 그대로 두세요) ...
+    public void PlaySFX(SFX type)
+    {
+        if (sfxDictionary.TryGetValue(type, out AudioClip clip))
+        {
+            if (clip != null) sfxPlayer.PlayOneShot(clip, globalSfxVolume);
+        }
+    }
+
+    // BGM 관련 함수 생략 (위의 코드와 동일) ...
+    public void PlayLobbyBGM() => PlayBGM(lobbyBGM);
+    public void PlayInGameBGM() => PlayBGM(inGameBGM);
     public void PlayBGM(AudioClip clip)
     {
-        if (clip == null) return;
-
-        // 이미 같은 음악이 나오고 있다면 다시 재생하지 않음 (씬 전환 시 끊김 방지)
-        if (bgmPlayer.clip == clip && bgmPlayer.isPlaying) return;
-
+        if (clip == null || (bgmPlayer.clip == clip && bgmPlayer.isPlaying)) return;
         bgmPlayer.clip = clip;
         bgmPlayer.Play();
     }
-
-    // 이름으로 편하게 재생하기 위한 오버로딩 (필요하면 추가)
-    public void PlayLobbyBGM() => PlayBGM(lobbyBGM);
-    public void PlayInGameBGM() => PlayBGM(inGameBGM);
-
-    public void StopBGM()
-    {
-        bgmPlayer.Stop();
-    }
-
-    public void SetBGMVolume(float volume)
-    {
-        globalBgmVolume = Mathf.Clamp01(volume);
-        bgmPlayer.volume = globalBgmVolume;
-    }
-
-    // ============================================
-    // 🔊 SFX (효과음) 관련 함수
-    // ============================================
-
-    public void PlaySFX(AudioClip clip)
-    {
-        if (clip == null) return;
-
-        // PlayOneShot: 소리가 겹쳐도 끊기지 않고 위에 덮어씌워 재생됨 (효과음 전용)
-        sfxPlayer.PlayOneShot(clip, globalSfxVolume);
-    }
-
-    // 자주 쓰는 효과음 단축 함수
-    public void PlayClickSFX() => PlaySFX(buttonClickSFX);
-
-    public void SetSFXVolume(float volume)
-    {
-        globalSfxVolume = Mathf.Clamp01(volume);
-        // SFX는 PlayOneShot을 쓸 때 볼륨을 넘겨주므로, 변수값만 바꿔두면 됨
-    }
+    public void StopBGM() => bgmPlayer.Stop();
+    public void SetBGMVolume(float volume) { globalBgmVolume = volume; bgmPlayer.volume = globalBgmVolume; }
+    public void SetSFXVolume(float volume) { globalSfxVolume = volume; }
 }
