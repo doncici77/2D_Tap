@@ -193,19 +193,22 @@ public class LobbyManager : MonoBehaviour
     {
         if (!CheckInternetConnection())
         {
-            UpdateStatus("No internet connection."); // UI: 인터넷 없음
+            UpdateStatus("No internet connection.");
             return;
         }
 
-        refreshButton.interactable = false;
-        UpdateStatus("Refreshing list..."); // UI: 목록 갱신 중
+        // 버튼이 없으면 아예 시작도 안 함
+        if (refreshButton == null) return;
+
+        refreshButton.interactable = false; // 버튼 비활성화
+        UpdateStatus("Refreshing list...");
 
         try
         {
             // 기존 목록 삭제
             foreach (Transform child in roomListContent) Destroy(child.gameObject);
 
-            // 검색 조건 설정 (빈 자리가 있는 방만)
+            // 검색 조건 설정
             QueryLobbiesOptions options = new QueryLobbiesOptions();
             options.Count = 10;
             options.Filters = new List<QueryFilter> {
@@ -218,13 +221,16 @@ public class LobbyManager : MonoBehaviour
 
             if (response.Results.Count == 0)
             {
-                UpdateStatus("No rooms found."); // UI: 방 없음
+                UpdateStatus("No rooms found.");
             }
             else
             {
-                UpdateStatus($"Found {response.Results.Count} room(s)."); // UI: N개 발견
+                UpdateStatus($"Found {response.Results.Count} room(s).");
                 foreach (Lobby lobby in response.Results)
                 {
+                    // 방 목록 생성 중에도 버튼이 파괴되었는지 체크 (선택 사항이지만 안전함)
+                    if (roomListContent == null) return;
+
                     RoomItem newItem = Instantiate(roomItemPrefab, roomListContent);
                     newItem.Setup(lobby, this);
                 }
@@ -233,9 +239,11 @@ public class LobbyManager : MonoBehaviour
         catch (System.Exception e)
         {
             Debug.LogError($"[Lobby] 목록 갱신 실패: {e.Message}");
-            UpdateStatus("Failed to load room list."); // UI: 로드 실패
+            UpdateStatus("Failed to load room list.");
         }
-        finally
+
+        // ★ [수정] 작업이 끝난 후, 버튼이 살아있는지 확인하고 켭니다.
+        if (refreshButton != null)
         {
             refreshButton.interactable = true;
         }
