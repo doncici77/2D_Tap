@@ -4,10 +4,10 @@ using System; // Enum 처리를 위해 필요
 
 public enum SFX
 {
+    // 주의 삭제하면 사운드 밀림 현상 발생
     Click,      // 클릭
     Success,    // 성공
     Fail,       // 실패
-    Attack,     // 공격
     Win,       // 승리
     Lose      // 패배
 }
@@ -126,13 +126,35 @@ public class SoundManager : MonoBehaviour
         }
     }
 
-    // ... (이하 PlaySFX, PlayBGM 등 함수들은 그대로 두세요) ...
     public void PlaySFX(SFX type)
     {
+        // ★ 이 로그가 뜨면: "함수 호출은 성공" (코드는 문제 없음)
+        // ★ 이 로그가 안 뜨면: "버튼 연결 실패" (AutoSoundBinder 문제)
+        Debug.Log($"[SoundDebug] 소리 재생 요청 들어옴: {type}");
+
         if (sfxDictionary.TryGetValue(type, out AudioClip clip))
         {
-            if (clip != null) sfxPlayer.PlayOneShot(clip, globalSfxVolume);
+            if (clip != null)
+            {
+                sfxPlayer.PlayOneShot(clip, globalSfxVolume);
+            }
+            else
+            {
+                Debug.LogError($"[SoundDebug] {type}에 해당하는 오디오 클립이 비어있습니다!");
+            }
         }
+        else
+        {
+            Debug.LogError($"[SoundDebug] 딕셔너리에 {type} 키가 없습니다. (Start/Awake 문제 가능성)");
+        }
+    }
+
+    public void PlayDirectSFX(AudioClip clip)
+    {
+        if (clip == null) return;
+
+        // SFX 볼륨 설정에 맞춰서 재생
+        sfxPlayer.PlayOneShot(clip, globalSfxVolume);
     }
 
     // BGM 관련 함수 생략 (위의 코드와 동일) ...

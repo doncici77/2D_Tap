@@ -59,6 +59,8 @@ public class LobbyManager : MonoBehaviour
                 UpdateStatus("Please check your internet connection.");
             }
         }
+
+        SoundManager.Instance.PlayBGM(SoundManager.Instance.inGameBGM);
     }
 
     // 인터넷 연결 확인 함수

@@ -39,6 +39,7 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        SoundManager.Instance.PlayBGM(SoundManager.Instance.inGameBGM);
         currentRound = 1;
         StartCoroutine(IntroSequence());
     }
@@ -109,6 +110,7 @@ public class GameManager : MonoBehaviour
         {
             // ★ [패배] 진짜 게임 오버
             currentState = GameState.GameOver;
+            SoundManager.Instance.PlaySFX(SFX.Lose);
             SingleUIManager.Instance.ShowResult(false); // 패배 UI 표시
         }
     }
@@ -118,6 +120,7 @@ public class GameManager : MonoBehaviour
     {
         currentState = GameState.GameOver; // 잠시 조작 불가
         SingleUIManager.Instance.ShowResult(true);
+        SoundManager.Instance.PlaySFX(SFX.Win);
 
         // 승리 메시지 잠깐 보여주기 (선택사항)
         yield return new WaitForSeconds(2.0f);

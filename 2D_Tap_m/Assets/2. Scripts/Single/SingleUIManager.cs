@@ -158,7 +158,7 @@ public class SingleUIManager : MonoBehaviour
         if (restartButton != null) restartButton.gameObject.SetActive(false);
 
         if (playerWin) { resultText.text = "VICTORY!"; resultText.color = Color.green; }
-        else { resultText.text = "DEFEAT..."; resultText.color = Color.red; }
+        else { restartButton.gameObject.SetActive(true);  resultText.text = "DEFEAT..."; resultText.color = Color.red; }
     }
 
     public void HideResult()

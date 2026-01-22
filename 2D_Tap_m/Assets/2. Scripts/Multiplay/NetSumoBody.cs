@@ -8,7 +8,7 @@ public class NetSumoBody : NetworkBehaviour
 
     [Header("Visual Settings")]
     public SpriteRenderer bodyRenderer;
-    public CharacterDatabase characterDB; // 스크립터블 오브젝트 연결 필수
+    public CharacterDatabase characterDB; // ★ DB 연결 필수!
 
     [Header("Movement Settings")]
     public float moveSpeed = 10f;
@@ -33,14 +33,13 @@ public class NetSumoBody : NetworkBehaviour
         // 1. 이벤트 구독
         netSkinId.OnValueChanged += OnSkinIdChanged;
 
-        // 2. 초기화
+        // 2. 초기화 (이미 들어있는 값으로 업데이트)
         UpdateSprite(netSkinId.Value);
 
         // 3. 주인(Owner)인 경우 스킨 정보 전송
         if (IsOwner)
         {
             int mySavedId = PlayerPrefs.GetInt("MyCharacterID", 0);
-            // ★ [수정] 이름도 Rpc로 통일하고 호출
             SubmitSkinRpc(mySavedId);
         }
 
@@ -56,12 +55,9 @@ public class NetSumoBody : NetworkBehaviour
         netSkinId.OnValueChanged -= OnSkinIdChanged;
     }
 
-    // ★ [핵심 수정] ServerRpc -> Rpc(SendTo.Server)
-    // 이름도 'ServerRpc' 접미사 대신 그냥 'Rpc'로 끝내는 것이 최신 관례입니다.
     [Rpc(SendTo.Server)]
     private void SubmitSkinRpc(int skinId)
     {
-        // 서버에서 실행됨
         netSkinId.Value = skinId;
     }
 
@@ -78,6 +74,32 @@ public class NetSumoBody : NetworkBehaviour
         }
     }
 
+    // ============================================
+    // ★ [추가] 사운드 재생 함수 (로컬에서만 들리면 됨)
+    // ============================================
+    public void PlaySuccessSound()
+    {
+        // 현재 내 스킨 ID (netSkinId.Value)에 맞는 소리 재생
+        AudioClip clip = (characterDB != null) ? characterDB.GetSuccessSound(netSkinId.Value) : null;
+
+        if (clip != null)
+            SoundManager.Instance.PlayDirectSFX(clip);
+        else
+            SoundManager.Instance.PlaySFX(SFX.Success);
+    }
+
+    public void PlayFailSound()
+    {
+        AudioClip clip = (characterDB != null) ? characterDB.GetFailSound(netSkinId.Value) : null;
+
+        if (clip != null)
+            SoundManager.Instance.PlayDirectSFX(clip);
+        else
+            SoundManager.Instance.PlaySFX(SFX.Fail);
+    }
+
+    // ============================================
+
     private void Update()
     {
         transform.position = Vector3.Lerp(transform.position, netTargetPos.Value, Time.deltaTime * moveSpeed);
@@ -90,7 +112,7 @@ public class NetSumoBody : NetworkBehaviour
         else IsMoving = true;
     }
 
-    // --- 물리 로직 (이 함수들은 RPC가 아니라 서버 로직이므로 속성 불필요) ---
+    // --- 물리 로직 ---
 
     public void PushOpponentServer(float powerMultiplier)
     {
@@ -104,10 +126,8 @@ public class NetSumoBody : NetworkBehaviour
     public void MoveStepServer(int directionSign, float multiplier)
     {
         if (opponent == null) return;
-
         float direction = Mathf.Sign(opponent.transform.position.x - transform.position.x);
         float distance = tileSize * multiplier;
-
         netTargetPos.Value += new Vector3(direction * directionSign * distance, 0, 0);
         IsMoving = true;
     }
@@ -115,10 +135,8 @@ public class NetSumoBody : NetworkBehaviour
     public void GetPushedServer(float multiplier)
     {
         if (opponent == null) return;
-
         float direction = Mathf.Sign(transform.position.x - opponent.transform.position.x);
         float distance = tileSize * multiplier;
-
         netTargetPos.Value += new Vector3(direction * distance, 0, 0);
         IsMoving = true;
     }

@@ -215,8 +215,8 @@ public class MultiUIManager : MonoBehaviour
         // 멀티는 재대결 버튼 보여줌
         if (restartButton != null) restartButton.gameObject.SetActive(true);
 
-        if (playerWin) { resultText.text = "VICTORY!"; resultText.color = Color.green; }
-        else { resultText.text = "DEFEAT..."; resultText.color = Color.red; }
+        if (playerWin) { SoundManager.Instance.PlaySFX(SFX.Win); resultText.text = "VICTORY!"; resultText.color = Color.green; }
+        else { SoundManager.Instance.PlaySFX(SFX.Lose); resultText.text = "DEFEAT..."; resultText.color = Color.red; }
     }
 
     public void HideResult()

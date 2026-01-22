@@ -3,6 +3,7 @@ using System.Collections;
 
 public class PlayerController : MonoBehaviour
 {
+    // ... (변수들은 그대로 유지) ...
     [Header("Connect Body")]
     public SumoBody myBody;
 
@@ -18,14 +19,12 @@ public class PlayerController : MonoBehaviour
     [Range(0f, 0.1f)] public float thresholdStep = 0.05f;
     [Range(0f, 0.98f)] public float maxThreshold = 0.95f;
 
-    // ★ [추가] 콤보 시스템 변수
     [Header("Combo System")]
     private int comboCount = 0;
-    public float comboBonus = 0.2f; // 콤보당 20% 파워 증가
+    public float comboBonus = 0.2f;
 
     private enum State { Idle, Charging, Cooldown }
     private State state = State.Idle;
-
     public bool IsCharging => state == State.Charging;
 
     private float currentSpeed;
@@ -57,10 +56,7 @@ public class PlayerController : MonoBehaviour
         {
             if (CurrentGaugeValue >= currentThreshold)
             {
-                // ★ [추가] 콤보 성공 로직
                 comboCount++;
-
-                // UI 갱신
                 if (SingleUIManager.Instance != null)
                     SingleUIManager.Instance.UpdateComboText(comboCount);
 
@@ -68,7 +64,6 @@ public class PlayerController : MonoBehaviour
             }
             else
             {
-                // ★ [추가] 콤보 실패 (초기화)
                 comboCount = 0;
                 if (SingleUIManager.Instance != null)
                     SingleUIManager.Instance.UpdateComboText(0);
@@ -89,28 +84,34 @@ public class PlayerController : MonoBehaviour
 
     private void SuccessAttack()
     {
-        // ★ [수정] 콤보 파워 계산 후 전달
         float power = 1.0f + ((comboCount - 1) * comboBonus);
-
-        myBody.PushOpponent(power); // 파워 실어서 밀기!
+        myBody.PushOpponent(power);
 
         currentSpeed = Mathf.Min(currentSpeed + speedStep, maxGaugeSpeed);
         currentThreshold = Mathf.Min(currentThreshold + thresholdStep, maxThreshold);
+
+        // ★ [수정] SoundManager 직접 호출 -> myBody에게 요청
+        // (캐릭터 고유 소리가 있으면 그거 틀고, 없으면 기본 소리 틈)
+        if (myBody != null) myBody.PlaySuccessSound();
 
         StartCoroutine(CooldownRoutine());
     }
 
     private IEnumerator FailRoutine()
     {
+        // ★ [수정] SoundManager 직접 호출 -> myBody에게 요청
+        if (myBody != null) myBody.PlayFailSound();
+
         state = State.Cooldown;
         Debug.Log("Miss! 패널티 적용");
 
-        ResetDifficulty(); // 여기서 콤보도 같이 초기화됨
+        ResetDifficulty();
 
         yield return new WaitForSeconds(attackCooldown);
         StartCharging();
     }
 
+    // ... (나머지 코드는 그대로) ...
     private IEnumerator CooldownRoutine()
     {
         state = State.Cooldown;

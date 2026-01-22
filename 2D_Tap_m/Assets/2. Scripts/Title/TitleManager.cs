@@ -13,6 +13,8 @@ public class TitleManager : MonoBehaviour
         Application.targetFrameRate = 60;
         // 수직 동기화 끄기 (모바일에서 프레임 제한과 충돌 방지)
         QualitySettings.vSyncCount = 0;
+
+        SoundManager.Instance.PlayBGM(SoundManager.Instance.lobbyBGM);
     }
 
     // 시작 버튼에 연결할 함수

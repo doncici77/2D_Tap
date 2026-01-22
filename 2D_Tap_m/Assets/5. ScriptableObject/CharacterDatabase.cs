@@ -1,25 +1,52 @@
 ﻿using UnityEngine;
 
-// 우클릭 > Create 메뉴에 이 항목이 생깁니다.
 [CreateAssetMenu(fileName = "CharacterDatabase", menuName = "Scriptable Objects/Character Database")]
 public class CharacterDatabase : ScriptableObject
 {
-    [Header("Character List")]
-    // 나중에 이름이나 능력치도 넣고 싶으면 구조체(Struct)나 클래스로 바꿔도 됩니다.
-    // 지금은 심플하게 이미지만 관리합시다.
-    public Sprite[] skins;
-
-    // 인덱스로 스프라이트를 안전하게 가져오는 헬퍼 함수
-    public Sprite GetSkin(int index)
+    // 1. 캐릭터 하나가 가질 정보들을 묶습니다.
+    [System.Serializable]
+    public struct CharacterData
     {
-        if (skins == null || skins.Length == 0) return null;
-
-        // 범위 벗어나면 0번이나 null 리턴
-        if (index < 0 || index >= skins.Length) return skins[0];
-
-        return skins[index];
+        public string name;           // 캐릭터 이름 (에디터 구별용)
+        public Sprite skin;           // 스킨 이미지
+        public AudioClip successClip; // 이 캐릭터만의 성공 사운드
+        public AudioClip failClip;    // 이 캐릭터만의 실패 사운드
     }
 
-    // 전체 개수 반환
-    public int Count => skins != null ? skins.Length : 0;
+    [Header("Character List")]
+    // 2. 이제 스프라이트 배열이 아니라, 데이터 묶음의 배열입니다.
+    public CharacterData[] characters;
+
+    // ==========================================
+    // 데이터 가져오는 헬퍼 함수들
+    // ==========================================
+
+    // 스킨 가져오기
+    public Sprite GetSkin(int index)
+    {
+        if (IsValidIndex(index)) return characters[index].skin;
+        return (characters != null && characters.Length > 0) ? characters[0].skin : null;
+    }
+
+    // 성공 사운드 가져오기
+    public AudioClip GetSuccessSound(int index)
+    {
+        if (IsValidIndex(index)) return characters[index].successClip;
+        return null; // 없으면 소리 안 남
+    }
+
+    // 실패 사운드 가져오기
+    public AudioClip GetFailSound(int index)
+    {
+        if (IsValidIndex(index)) return characters[index].failClip;
+        return null;
+    }
+
+    // 인덱스 유효성 검사 (중복 코드 제거)
+    private bool IsValidIndex(int index)
+    {
+        return characters != null && index >= 0 && index < characters.Length;
+    }
+
+    public int Count => characters != null ? characters.Length : 0;
 }
