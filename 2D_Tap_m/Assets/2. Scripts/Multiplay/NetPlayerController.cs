@@ -185,14 +185,21 @@ public class NetPlayerController : NetworkBehaviour
         }
     }
 
+    // ★ [여기만 수정됨] 성공 시 애니메이션 실행
     private void SuccessAttackLocal()
     {
         currentSpeed = Mathf.Min(currentSpeed + speedStep, maxGaugeSpeed);
         currentThreshold = Mathf.Min(currentThreshold + thresholdStep, maxThreshold);
 
-        // ★ [수정] myBody에게 소리 재생 요청
+        // 1. 사운드 재생
         if (myBody != null) myBody.PlaySuccessSound();
         else SoundManager.Instance.PlaySFX(SFX.Success);
+
+        // ★ [추가] 2. 쫀득한 젤리 애니메이션 실행!
+        if (myBody != null)
+        {
+            myBody.PlayAttackAnim();
+        }
 
         StartCoroutine(CooldownRoutine());
     }

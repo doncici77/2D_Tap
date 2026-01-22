@@ -3,7 +3,6 @@ using System.Collections;
 
 public class PlayerController : MonoBehaviour
 {
-    // ... (변수들은 그대로 유지) ...
     [Header("Connect Body")]
     public SumoBody myBody;
 
@@ -90,16 +89,20 @@ public class PlayerController : MonoBehaviour
         currentSpeed = Mathf.Min(currentSpeed + speedStep, maxGaugeSpeed);
         currentThreshold = Mathf.Min(currentThreshold + thresholdStep, maxThreshold);
 
-        // ★ [수정] SoundManager 직접 호출 -> myBody에게 요청
-        // (캐릭터 고유 소리가 있으면 그거 틀고, 없으면 기본 소리 틈)
-        if (myBody != null) myBody.PlaySuccessSound();
+        if (myBody != null)
+        {
+            // 1. 소리 재생
+            myBody.PlaySuccessSound();
+
+            // ★ [추가] 2. 쫀득한 애니메이션 실행
+            myBody.PlayAttackAnim();
+        }
 
         StartCoroutine(CooldownRoutine());
     }
 
     private IEnumerator FailRoutine()
     {
-        // ★ [수정] SoundManager 직접 호출 -> myBody에게 요청
         if (myBody != null) myBody.PlayFailSound();
 
         state = State.Cooldown;
@@ -111,7 +114,6 @@ public class PlayerController : MonoBehaviour
         StartCharging();
     }
 
-    // ... (나머지 코드는 그대로) ...
     private IEnumerator CooldownRoutine()
     {
         state = State.Cooldown;

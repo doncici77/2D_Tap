@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using Unity.Netcode;
+using System.Collections; // ★ [추가] 코루틴(IEnumerator) 쓰려면 이게 꼭 필요합니다!
 
 public class NetSumoBody : NetworkBehaviour
 {
@@ -8,11 +9,16 @@ public class NetSumoBody : NetworkBehaviour
 
     [Header("Visual Settings")]
     public SpriteRenderer bodyRenderer;
-    public CharacterDatabase characterDB; // ★ DB 연결 필수!
+    public CharacterDatabase characterDB;
 
     [Header("Movement Settings")]
     public float moveSpeed = 10f;
     public float tileSize = 1.5f;
+
+    // ★ [추가] 쫀득한 애니메이션 설정값
+    [Header("Animation Settings")]
+    public float squashDuration = 0.15f; // 애니메이션 시간
+    public Vector3 attackScale = new Vector3(1.3f, 0.8f, 1f); // 늘어날 크기 (X는 뚱뚱, Y는 납작)
 
     // 스킨 ID 동기화 변수
     public NetworkVariable<int> netSkinId = new NetworkVariable<int>(
@@ -30,13 +36,9 @@ public class NetSumoBody : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        // 1. 이벤트 구독
         netSkinId.OnValueChanged += OnSkinIdChanged;
-
-        // 2. 초기화 (이미 들어있는 값으로 업데이트)
         UpdateSprite(netSkinId.Value);
 
-        // 3. 주인(Owner)인 경우 스킨 정보 전송
         if (IsOwner)
         {
             int mySavedId = PlayerPrefs.GetInt("MyCharacterID", 0);
@@ -75,29 +77,62 @@ public class NetSumoBody : NetworkBehaviour
     }
 
     // ============================================
-    // ★ [추가] 사운드 재생 함수 (로컬에서만 들리면 됨)
+    // 사운드 재생 함수
     // ============================================
     public void PlaySuccessSound()
     {
-        // 현재 내 스킨 ID (netSkinId.Value)에 맞는 소리 재생
         AudioClip clip = (characterDB != null) ? characterDB.GetSuccessSound(netSkinId.Value) : null;
-
-        if (clip != null)
-            SoundManager.Instance.PlayDirectSFX(clip);
-        else
-            SoundManager.Instance.PlaySFX(SFX.Success);
+        if (clip != null) SoundManager.Instance.PlayDirectSFX(clip);
+        else SoundManager.Instance.PlaySFX(SFX.Success);
     }
 
     public void PlayFailSound()
     {
         AudioClip clip = (characterDB != null) ? characterDB.GetFailSound(netSkinId.Value) : null;
-
-        if (clip != null)
-            SoundManager.Instance.PlayDirectSFX(clip);
-        else
-            SoundManager.Instance.PlaySFX(SFX.Fail);
+        if (clip != null) SoundManager.Instance.PlayDirectSFX(clip);
+        else SoundManager.Instance.PlaySFX(SFX.Fail);
     }
 
+    // ============================================
+    // ★ [추가] 쫀득한 공격 애니메이션 실행 함수
+    // ============================================
+    public void PlayAttackAnim()
+    {
+        // 이미 움직이고 있어도 강제로 멈추고 새로 시작 (반응성 향상)
+        StopAllCoroutines();
+        StartCoroutine(SquashRoutine());
+    }
+
+    private IEnumerator SquashRoutine()
+    {
+        // 렌더러가 붙은 오브젝트(보통 자기 자신)를 변형합니다.
+        Transform targetTr = bodyRenderer.transform;
+        Vector3 originalScale = Vector3.one; // 원래 크기 (1,1,1)
+
+        float timer = 0f;
+
+        // 1. 찌그러지기 (가는 과정)
+        while (timer < squashDuration / 2)
+        {
+            timer += Time.deltaTime;
+            float t = timer / (squashDuration / 2);
+            targetTr.localScale = Vector3.Lerp(originalScale, attackScale, t);
+            yield return null;
+        }
+
+        // 2. 돌아오기 (오는 과정)
+        timer = 0f;
+        while (timer < squashDuration / 2)
+        {
+            timer += Time.deltaTime;
+            float t = timer / (squashDuration / 2);
+            targetTr.localScale = Vector3.Lerp(attackScale, originalScale, t);
+            yield return null;
+        }
+
+        // 3. 확실하게 원상복구
+        targetTr.localScale = originalScale;
+    }
     // ============================================
 
     private void Update()
@@ -113,14 +148,10 @@ public class NetSumoBody : NetworkBehaviour
     }
 
     // --- 물리 로직 ---
-
     public void PushOpponentServer(float powerMultiplier)
     {
         MoveStepServer(1, powerMultiplier);
-        if (opponent != null)
-        {
-            opponent.GetPushedServer(powerMultiplier);
-        }
+        if (opponent != null) opponent.GetPushedServer(powerMultiplier);
     }
 
     public void MoveStepServer(int directionSign, float multiplier)

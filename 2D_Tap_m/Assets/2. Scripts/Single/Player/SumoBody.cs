@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections; // ★ [추가] 코루틴 사용을 위해 필수
 
 public class SumoBody : MonoBehaviour
 {
@@ -7,16 +8,19 @@ public class SumoBody : MonoBehaviour
 
     [Header("Visual Settings")]
     public SpriteRenderer bodyRenderer;
-    public CharacterDatabase characterDB; // ★ 여기에 DB가 연결되어 있어야 합니다!
+    public CharacterDatabase characterDB;
 
     [Header("Movement Settings")]
     public float moveSpeed = 10f;
     public float tileSize = 1.5f;
 
+    // ★ [추가] 쫀득한 애니메이션 설정값
+    [Header("Animation Settings")]
+    public float squashDuration = 0.15f; // 애니메이션 시간
+    public Vector3 attackScale = new Vector3(1.3f, 0.8f, 1f); // 늘어날 크기 (X는 뚱뚱, Y는 납작)
+
     public bool IsMoving { get; private set; }
     private Vector3 targetPosition;
-
-    // ★ [추가] 현재 내 캐릭터가 몇 번인지 기억하는 변수
     private int currentSkinIndex = 0;
 
     private void Awake()
@@ -32,7 +36,6 @@ public class SumoBody : MonoBehaviour
         {
             if (gameObject.CompareTag("Player"))
             {
-                // ★ [수정] 지역변수가 아니라 멤버변수에 저장
                 currentSkinIndex = PlayerPrefs.GetInt("MyCharacterID", 0);
                 ChangeSkin(currentSkinIndex);
             }
@@ -48,41 +51,63 @@ public class SumoBody : MonoBehaviour
     }
 
     // ============================================
-    // ★ [추가] 캐릭터 고유 사운드 재생 함수들
+    // 사운드 재생 함수들
     // ============================================
-
     public void PlaySuccessSound()
     {
-        // 1. DB에서 내 캐릭터(index)의 성공 소리를 가져옴
         AudioClip clip = (characterDB != null) ? characterDB.GetSuccessSound(currentSkinIndex) : null;
-
-        if (clip != null)
-        {
-            // 2. 고유 소리가 있으면 그거 재생 (Direct)
-            SoundManager.Instance.PlayDirectSFX(clip);
-        }
-        else
-        {
-            // 3. 없으면 기본 공용 소리 재생 (Enum)
-            SoundManager.Instance.PlaySFX(SFX.Success);
-        }
+        if (clip != null) SoundManager.Instance.PlayDirectSFX(clip);
+        else SoundManager.Instance.PlaySFX(SFX.Success);
     }
 
     public void PlayFailSound()
     {
         AudioClip clip = (characterDB != null) ? characterDB.GetFailSound(currentSkinIndex) : null;
-
-        if (clip != null)
-        {
-            SoundManager.Instance.PlayDirectSFX(clip);
-        }
-        else
-        {
-            SoundManager.Instance.PlaySFX(SFX.Fail);
-        }
+        if (clip != null) SoundManager.Instance.PlayDirectSFX(clip);
+        else SoundManager.Instance.PlaySFX(SFX.Fail);
     }
 
-    // ... (아래 Update, PushOpponent 등 나머지 코드는 기존과 동일) ...
+    // ============================================
+    // ★ [추가] 쫀득한 공격 애니메이션 실행 함수
+    // ============================================
+    public void PlayAttackAnim()
+    {
+        // 이미 움직이고 있어도 강제로 멈추고 새로 시작 (반응성 향상)
+        StopAllCoroutines();
+        StartCoroutine(SquashRoutine());
+    }
+
+    private IEnumerator SquashRoutine()
+    {
+        // 렌더러가 붙은 오브젝트(이미지)만 변형
+        Transform targetTr = bodyRenderer.transform;
+        Vector3 originalScale = gameObject.transform.localScale;
+        float timer = 0f;
+
+        // 1. 찌그러지기 (가는 과정)
+        while (timer < squashDuration / 2)
+        {
+            timer += Time.deltaTime;
+            float t = timer / (squashDuration / 2);
+            targetTr.localScale = Vector3.Lerp(originalScale, attackScale, t);
+            yield return null;
+        }
+
+        // 2. 돌아오기 (오는 과정)
+        timer = 0f;
+        while (timer < squashDuration / 2)
+        {
+            timer += Time.deltaTime;
+            float t = timer / (squashDuration / 2);
+            targetTr.localScale = Vector3.Lerp(attackScale, originalScale, t);
+            yield return null;
+        }
+
+        // 3. 확실하게 원상복구
+        targetTr.localScale = originalScale;
+    }
+    // ============================================
+
     private void Update()
     {
         if (GameManager.Instance != null && GameManager.Instance.currentState == GameManager.GameState.Intro)
