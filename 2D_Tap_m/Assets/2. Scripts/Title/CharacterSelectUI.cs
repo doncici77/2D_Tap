@@ -121,16 +121,31 @@ public class CharacterSelectUI : MonoBehaviour
 
     void OnAdYesClicked()
     {
+        // 팝업 닫기
         if (adConfirmPopup != null) adConfirmPopup.SetActive(false);
 
+        // 인터넷 연결 확인
         if (Application.internetReachability == NetworkReachability.NotReachable)
         {
             if (noInternetPopup != null) noInternetPopup.SetActive(true);
             return;
         }
 
-        // (AdMob 부분은 그대로 유지)
-        ConfirmSelection(pendingCharacterIndex);
+        // ★ [핵심] 광고 매니저에게 "광고 보여줘!" 하고, 다 보면 실행할 일(캐릭터 변경)을 맡김
+        if (AdMobManager.Instance != null)
+        {
+            AdMobManager.Instance.ShowAd(() =>
+            {
+                // 이 안쪽 코드는 광고가 닫힌 뒤에 실행됨
+                ConfirmSelection(pendingCharacterIndex);
+            });
+        }
+        else
+        {
+            // 만약 광고 매니저가 없으면(에러 방지), 그냥 바로 변경해줌
+            Debug.LogWarning("AdMobManager가 없습니다. 광고 없이 변경합니다.");
+            ConfirmSelection(pendingCharacterIndex);
+        }
     }
 
     void OnAdNoClicked()
