@@ -15,5 +15,7 @@ EditorBuildSettings:
     path: Assets/1. Scenes/MultiScene.unity
     guid: a6dec56ef82dac14c9930d9e64de8e7c
   m_configObjects:
+    com.unity.addressableassets: {fileID: 11400000, guid: 0c234530f04254d4cbbd5385c3dd2d2e, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
+    com.unity.localization.settings: {fileID: 11400000, guid: a9e51774ea448f441890e6fe66af73a7, type: 2}
   m_UseUCBPForAssetBundles: 0

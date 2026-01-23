@@ -3,6 +3,7 @@ using Unity.Netcode;
 using Unity.Services.Lobbies;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Localization.Settings;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -194,8 +195,18 @@ public class MultiUIManager : MonoBehaviour
         if (distanceText == null) return;
 
         // 1. 텍스트 갱신 (가장 먼저 실행!)
-        string status = NetGameManager.Instance.GetBattleStatusText();
-        if (!string.IsNullOrEmpty(status)) distanceText.text = status;
+        string statusKey = NetGameManager.Instance.GetBattleStatusKey();
+
+        if (!string.IsNullOrEmpty(statusKey))
+        {
+            // Localization 테이블 이름이 "UITable"이라고 가정
+            string localizedText = LocalizationSettings.StringDatabase.GetLocalizedString("UITable", statusKey);
+            distanceText.text = localizedText;
+        }
+        else
+        {
+            distanceText.text = "";
+        }
 
         // 2. 버튼 표시 여부 판단
         bool isWaiting = (distanceText.text == "WAITING FOR OPPONENT..." || distanceText.text == "WAITING...");
