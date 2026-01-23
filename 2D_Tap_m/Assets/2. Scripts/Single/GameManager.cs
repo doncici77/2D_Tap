@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using Unity.Netcode;
+using UnityEngine;
 using UnityEngine.SceneManagement;
-using System.Collections;
 
 public class GameManager : MonoBehaviour
 {
@@ -150,16 +151,17 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene(titleSceneName);
     }
 
-    public string GetBattleStatusText()
+    public string GetBattleStatusKey()
     {
         float playerDist = Mathf.Abs(playerTransform.position.x);
         float aiDist = Mathf.Abs(aiTransform.position.x);
         float dangerZone = fallLineX * 0.7f;
 
-        if (playerDist > dangerZone) return "DANGER!!";
-        if (aiDist > dangerZone) return "FINISH HIM!";
-        if (Mathf.Abs(playerDist - aiDist) < 1.0f) return "EQUAL";
-        else if (aiDist > playerDist) return "ADVANTAGE";
-        else return "DEFENSE!";
+        if (playerDist > dangerZone) return "status_danger";
+        if (aiDist > dangerZone) return "status_finish";
+        if (Mathf.Abs(playerDist - aiDist) < 1.0f) return "status_equal";
+        else if (aiDist > playerDist) return "status_advantage";
+        else return "status_defense";
+
     }
 }

@@ -10,6 +10,7 @@ using Unity.Services.Relay.Models;
 using Unity.Netcode.Transports.UTP;
 using System.Collections.Generic;
 using TMPro;
+using UnityEngine.Localization.Settings;
 
 public class LobbyManager : MonoBehaviour
 {
@@ -22,11 +23,14 @@ public class LobbyManager : MonoBehaviour
     public TMP_InputField roomNameInput; // 방 이름 입력
     public GameObject loadingPanel;   // 로딩 패널
 
-    // ★ [추가] 현재 방의 ID를 저장할 변수 (어디서든 접근 가능하게 static으로)
+    // ★ 현재 방의 ID를 저장할 변수
     public static string CurrentLobbyId;
 
-    // 상태 메시지 텍스트 (UI에는 영어가 출력됨)
+    // 상태 메시지 텍스트
     public TextMeshProUGUI statusText;
+
+    // ★ 테이블 이름 정의
+    private const string TableName = "Table";
 
     private void Start()
     {
@@ -55,8 +59,8 @@ public class LobbyManager : MonoBehaviour
             }
             else
             {
-                // UI: 영어 출력
-                UpdateStatus("Please check your internet connection.");
+                // UI: "인터넷 연결 확인해주세요"
+                UpdateStatusKey("lobby_check_internet");
             }
         }
 
@@ -80,17 +84,27 @@ public class LobbyManager : MonoBehaviour
         refreshButton.interactable = interactable;
     }
 
-    // 상태 메시지 업데이트 (UI용)
-    void UpdateStatus(string msg)
+    // ★ [수정] 키(Key)를 받아서 번역된 텍스트 출력하는 함수 (일반 텍스트)
+    void UpdateStatusKey(string key)
     {
-        if (statusText != null) statusText.text = msg;
-        // 로그에는 어떤 영어 메시지가 떴는지 기록
-        Debug.Log($"[Status UI] {msg}");
+        if (statusText != null)
+        {
+            statusText.text = LocalizationSettings.StringDatabase.GetLocalizedString(TableName, key);
+        }
+    }
+
+    // ★ [추가] 인자(Available Rooms 등 숫자)가 있는 번역 텍스트 출력용 함수
+    void UpdateStatusKey(string key, object[] args)
+    {
+        if (statusText != null)
+        {
+            statusText.text = LocalizationSettings.StringDatabase.GetLocalizedString(TableName, key, args);
+        }
     }
 
     async void Authenticate()
     {
-        UpdateStatus("Connecting to server..."); // UI: 서버 연결 중
+        UpdateStatusKey("lobby_connecting"); // "서버 연결 중..."
 
         try
         {
@@ -102,7 +116,7 @@ public class LobbyManager : MonoBehaviour
             }
 
             Debug.Log($"[Lobby] 로그인 성공! ID: {AuthenticationService.Instance.PlayerId}");
-            UpdateStatus("Ready"); // UI: 준비 완료
+            UpdateStatusKey("lobby_ready"); // "준비 완료"
 
             SetButtonsState(true);
             RefreshLobbyList(); // 로그인 되면 목록 한번 갱신
@@ -110,7 +124,7 @@ public class LobbyManager : MonoBehaviour
         catch (System.Exception e)
         {
             Debug.LogError($"[Lobby] 로그인 실패: {e}");
-            UpdateStatus("Connection failed. Please restart."); // UI: 연결 실패
+            UpdateStatusKey("lobby_connect_fail"); // "연결 실패"
             SetButtonsState(false);
         }
     }
@@ -120,13 +134,13 @@ public class LobbyManager : MonoBehaviour
         // 인터넷 재확인
         if (!CheckInternetConnection())
         {
-            UpdateStatus("No internet connection."); // UI: 인터넷 없음
+            UpdateStatusKey("lobby_no_internet"); // "인터넷 없음"
             return;
         }
 
         if (loadingPanel != null) loadingPanel.SetActive(true);
         SetButtonsState(false);
-        UpdateStatus("Creating room..."); // UI: 방 생성 중
+        UpdateStatusKey("lobby_creating_room"); // "방 생성 중..."
 
         string startingSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
 
@@ -161,9 +175,9 @@ public class LobbyManager : MonoBehaviour
                 throw new System.Exception("씬 변경됨 (방 생성 취소)");
 
             Debug.Log($"[Lobby] 방 생성 완료: {lobby.Name}");
-            // ★ [추가] 방이 만들어지면 ID를 저장해둡니다!
             CurrentLobbyId = lobby.Id;
-            UpdateStatus("Room created! Starting game..."); // UI: 방 생성됨
+
+            UpdateStatusKey("lobby_room_created"); // "방 생성 완료! 게임 시작..."
 
             NetworkManager.Singleton.StartHost();
 
@@ -176,7 +190,8 @@ public class LobbyManager : MonoBehaviour
         catch (LobbyServiceException e)
         {
             Debug.LogError($"[Lobby] 로비 서비스 에러: {e}");
-            UpdateStatus($"Failed to create room: {e.Reason}"); // UI: 실패 이유 출력
+            // "방 생성 실패: {이유}"
+            UpdateStatusKey("lobby_create_fail", new object[] { e.Reason });
 
             if (loadingPanel != null) loadingPanel.SetActive(false);
             SetButtonsState(true);
@@ -184,7 +199,7 @@ public class LobbyManager : MonoBehaviour
         catch (System.Exception e)
         {
             Debug.LogError($"[Lobby] 방 생성 실패: {e.Message}");
-            UpdateStatus("An error occurred."); // UI: 오류 발생
+            UpdateStatusKey("lobby_error"); // "오류가 발생했습니다."
 
             if (loadingPanel != null) loadingPanel.SetActive(false);
             SetButtonsState(true);
@@ -195,7 +210,7 @@ public class LobbyManager : MonoBehaviour
     {
         if (!CheckInternetConnection())
         {
-            UpdateStatus("No internet connection.");
+            UpdateStatusKey("lobby_no_internet");
             return;
         }
 
@@ -203,7 +218,7 @@ public class LobbyManager : MonoBehaviour
         if (refreshButton == null) return;
 
         refreshButton.interactable = false; // 버튼 비활성화
-        UpdateStatus("Refreshing list...");
+        UpdateStatusKey("lobby_refreshing"); // "목록 갱신 중..."
 
         try
         {
@@ -223,14 +238,15 @@ public class LobbyManager : MonoBehaviour
 
             if (response.Results.Count == 0)
             {
-                UpdateStatus("No rooms found.");
+                UpdateStatusKey("lobby_no_rooms"); // "방이 없습니다."
             }
             else
             {
-                UpdateStatus($"Found {response.Results.Count} room(s).");
+                // "방 {0}개를 찾았습니다."
+                UpdateStatusKey("lobby_found_rooms", new object[] { response.Results.Count });
+
                 foreach (Lobby lobby in response.Results)
                 {
-                    // 방 목록 생성 중에도 버튼이 파괴되었는지 체크 (선택 사항이지만 안전함)
                     if (roomListContent == null) return;
 
                     RoomItem newItem = Instantiate(roomItemPrefab, roomListContent);
@@ -241,10 +257,9 @@ public class LobbyManager : MonoBehaviour
         catch (System.Exception e)
         {
             Debug.LogError($"[Lobby] 목록 갱신 실패: {e.Message}");
-            UpdateStatus("Failed to load room list.");
+            UpdateStatusKey("lobby_load_fail"); // "목록 불러오기 실패."
         }
 
-        // ★ [수정] 작업이 끝난 후, 버튼이 살아있는지 확인하고 켭니다.
         if (refreshButton != null)
         {
             refreshButton.interactable = true;
@@ -254,7 +269,7 @@ public class LobbyManager : MonoBehaviour
     public async void JoinRoom(Lobby lobby)
     {
         if (loadingPanel != null) loadingPanel.SetActive(true);
-        UpdateStatus("Joining room..."); // UI: 입장 중
+        UpdateStatusKey("lobby_joining"); // "방 입장 중..."
         SetButtonsState(false);
 
         try
@@ -280,7 +295,7 @@ public class LobbyManager : MonoBehaviour
         catch (System.Exception e)
         {
             Debug.LogError($"[Lobby] 입장 실패: {e.Message}");
-            UpdateStatus("Failed to join room."); // UI: 입장 실패
+            UpdateStatusKey("lobby_join_fail"); // "방 입장 실패."
 
             if (loadingPanel != null) loadingPanel.SetActive(false);
             SetButtonsState(true);

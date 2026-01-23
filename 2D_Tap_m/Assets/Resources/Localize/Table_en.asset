@@ -1,0 +1,259 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: Table_en
+  m_EditorClassIdentifier: 
+  m_LocaleId:
+    m_Code: en
+  m_SharedData: {fileID: 11400000, guid: 397a22d98ad284a4681b2b29c5642338, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 42710851584
+    m_Localized: YOU WIN!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017408
+    m_Localized: YOU LOSE...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017409
+    m_Localized: WAITING...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017410
+    m_Localized: WAITING FOR OPPONENT...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017411
+    m_Localized: '{0} COMBO!'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017412
+    m_Localized: ROUND {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017413
+    m_Localized: ME
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017414
+    m_Localized: ENEMY
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017415
+    m_Localized: DANGER!!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017416
+    m_Localized: FINISH HIM!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017417
+    m_Localized: EQUAL
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017418
+    m_Localized: ADVANTAGE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017419
+    m_Localized: DEFENSE!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017420
+    m_Localized: Waiting for Opponent...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017421
+    m_Localized: Opponent wants Rematch!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017422
+    m_Localized: Game Restarting...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017423
+    m_Localized: FIGHT!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2014507687936
+    m_Localized: Character
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694487363584
+    m_Localized: Guest Login
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694487363585
+    m_Localized: Google Play Login
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694487363586
+    m_Localized: BGM
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694487363587
+    m_Localized: SFX
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694487363588
+    m_Localized: No Internet
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694487363589
+    m_Localized: Yes
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694491557888
+    m_Localized: No
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694491557889
+    m_Localized: Watch Ad?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694491557890
+    m_Localized: ID
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694491557891
+    m_Localized: Settings
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694491557892
+    m_Localized: Log Out
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694491557893
+    m_Localized: Multiplay
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694491557894
+    m_Localized: Singleplay
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694491557895
+    m_Localized: 'ID: Guest'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694491557896
+    m_Localized: 'ID: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694491557897
+    m_Localized: Welcome! Please Login.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694491557898
+    m_Localized: Logging in...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694491557899
+    m_Localized: Login Failed. Try Again.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694491557900
+    m_Localized: Linking Server...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694491557901
+    m_Localized: Login Error
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832960
+    m_Localized: OK
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832961
+    m_Localized: Tap
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832962
+    m_Localized: Exit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832963
+    m_Localized: ReStart
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832964
+    m_Localized: Host
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832965
+    m_Localized: Refresh
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832966
+    m_Localized: Connecting to server...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832967
+    m_Localized: Ready
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832968
+    m_Localized: Connection failed. Please restart.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832969
+    m_Localized: No internet connection.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832970
+    m_Localized: Creating room...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832971
+    m_Localized: Room created! Starting game...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832972
+    m_Localized: 'Failed to create room: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832973
+    m_Localized: An error occurred.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832974
+    m_Localized: Refreshing list...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832975
+    m_Localized: No rooms found.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832976
+    m_Localized: Found {0} room(s).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832977
+    m_Localized: Failed to load room list.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832978
+    m_Localized: Joining room...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832979
+    m_Localized: Failed to join room.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832980
+    m_Localized: Please check your internet connection.
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

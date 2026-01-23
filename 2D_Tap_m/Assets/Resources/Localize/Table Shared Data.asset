@@ -1,0 +1,264 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b11a58205ec3474ca216360e9fa74a8, type: 3}
+  m_Name: Table Shared Data
+  m_EditorClassIdentifier: 
+  m_TableCollectionName: Table
+  m_TableCollectionNameGuidString: 397a22d98ad284a4681b2b29c5642338
+  m_Entries:
+  - m_Id: 42710851584
+    m_Key: ui_win
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017408
+    m_Key: ui_lose
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017409
+    m_Key: ui_waiting
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017410
+    m_Key: ui_waiting_opponent
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017411
+    m_Key: ui_combo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017412
+    m_Key: ui_round
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017413
+    m_Key: ui_me
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017414
+    m_Key: ui_enemy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017415
+    m_Key: status_danger
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017416
+    m_Key: status_finish
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017417
+    m_Key: status_equal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017418
+    m_Key: status_advantage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017419
+    m_Key: status_defense
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017420
+    m_Key: rematch_wait
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017421
+    m_Key: rematch_request
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017422
+    m_Key: rematch_restart
+    m_Metadata:
+      m_Items: []
+  - m_Id: 42736017423
+    m_Key: intro_fight
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2014507687936
+    m_Key: title_charater
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694487363584
+    m_Key: title_Guest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694487363585
+    m_Key: title_playgames
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694487363586
+    m_Key: title_bgm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694487363587
+    m_Key: title_sfx
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694487363588
+    m_Key: title_NoInternet
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694487363589
+    m_Key: title_Yes
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694491557888
+    m_Key: title_No
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694491557889
+    m_Key: title_SeeAd
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694491557890
+    m_Key: title_ID
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694491557891
+    m_Key: title_Setting
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694491557892
+    m_Key: title_LogOut
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694491557893
+    m_Key: title_Multi
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694491557894
+    m_Key: title_Single
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694491557895
+    m_Key: auth_id_guest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694491557896
+    m_Key: auth_id_user
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694491557897
+    m_Key: auth_welcome
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694491557898
+    m_Key: auth_logging_in
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694491557899
+    m_Key: auth_login_failed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694491557900
+    m_Key: auth_linking
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11694491557901
+    m_Key: auth_error
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832960
+    m_Key: title_ok
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832961
+    m_Key: ui_Tap
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832962
+    m_Key: ui_Exit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832963
+    m_Key: ui_ReStart
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832964
+    m_Key: multi_Host
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832965
+    m_Key: multi_Refresh
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832966
+    m_Key: lobby_connecting
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832967
+    m_Key: lobby_ready
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832968
+    m_Key: lobby_connect_fail
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832969
+    m_Key: lobby_no_internet
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832970
+    m_Key: lobby_creating_room
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832971
+    m_Key: lobby_room_created
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832972
+    m_Key: lobby_create_fail
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832973
+    m_Key: lobby_error
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832974
+    m_Key: lobby_refreshing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832975
+    m_Key: lobby_no_rooms
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832976
+    m_Key: lobby_found_rooms
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832977
+    m_Key: lobby_load_fail
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832978
+    m_Key: lobby_joining
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832979
+    m_Key: lobby_join_fail
+    m_Metadata:
+      m_Items: []
+  - m_Id: 18033313832980
+    m_Key: lobby_check_internet
+    m_Metadata:
+      m_Items: []
+  m_Metadata:
+    m_Items: []
+  m_KeyGenerator:
+    rid: 2606135555353215208
+  references:
+    version: 2
+    RefIds:
+    - rid: 2606135555353215208
+      type: {class: DistributedUIDGenerator, ns: UnityEngine.Localization.Tables, asm: Unity.Localization}
+      data:
+        m_CustomEpoch: 1769152728912

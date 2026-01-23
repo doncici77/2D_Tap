@@ -24,11 +24,11 @@ MonoBehaviour:
   m_InternalBundleIdMode: 1
   m_AssetLoadMode: 0
   m_BundledAssetProviderType:
-    m_AssemblyName: 
-    m_ClassName: 
+    m_AssemblyName: Unity.ResourceManager, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    m_ClassName: UnityEngine.ResourceManagement.ResourceProviders.BundledAssetProvider
   m_AssetBundleProviderType:
-    m_AssemblyName: 
-    m_ClassName: 
+    m_AssemblyName: Unity.ResourceManager, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    m_ClassName: UnityEngine.ResourceManagement.ResourceProviders.AssetBundleProvider
   m_IgnoreUnsupportedFilesInBuild: 0
   m_UniqueBundleIds: 0
   m_EnableJsonCatalog: 0
@@ -60,7 +60,16 @@ MonoBehaviour:
   m_BuildAddressablesWithPlayerBuild: 0
   m_overridePlayerVersion: '[UnityEditor.PlayerSettings.bundleVersion]'
   m_GroupAssets:
+  - {fileID: 11400000, guid: 35588bdf8dbc53b409cf05a040a86ff7, type: 2}
+  - {fileID: 11400000, guid: 758e5b736980368479602c3f11593181, type: 2}
+  - {fileID: 11400000, guid: 8ac2d954df6f4a840a0bea371a495121, type: 2}
   - {fileID: 11400000, guid: 81a6d7719a4ca174b94ba2d5171c4252, type: 2}
+  - {fileID: 11400000, guid: 764c00cbe04b31744b6bce71469b58e6, type: 2}
+  - {fileID: 11400000, guid: 98a6b1945d4c6394992eef078b24218e, type: 2}
+  - {fileID: 11400000, guid: 5e5e2ccf791c75b4fa4fbccab3822b3f, type: 2}
+  - {fileID: 11400000, guid: 8e0c97b89868c644b9d3ec8f9a2f53ba, type: 2}
+  - {fileID: 11400000, guid: 6cfece3a27c3bf24c9f12c3cfda685d2, type: 2}
+  - {fileID: 11400000, guid: e521fe46e1056c24ab015d08fe318e22, type: 2}
   m_BuildSettings:
     m_LogResourceManagerExceptions: 1
     m_BundleBuildPath: Temp/com.unity.addressables/AssetBundles
@@ -100,6 +109,14 @@ MonoBehaviour:
   m_LabelTable:
     m_LabelNames:
     - default
+    - Locale
+    - Locale-en
+    - Locale-ko
+    - Locale-zh-Hans
+    - Locale-hi
+    - Locale-ru
+    - Locale-ja
+    - Locale-vi
   m_SchemaTemplates: []
   m_GroupTemplateObjects:
   - {fileID: 11400000, guid: ff3c59eba1b16ee46b0749edbf891243, type: 2}

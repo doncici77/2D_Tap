@@ -4,6 +4,9 @@ using GooglePlayGames.BasicApi;
 using System.Collections;
 using TMPro;
 using UnityEngine;
+// ★ 로컬라이제이션 네임스페이스 추가
+using UnityEngine.Localization;
+using UnityEngine.Localization.Settings;
 
 public class GoogleManager : MonoBehaviour
 {
@@ -15,6 +18,9 @@ public class GoogleManager : MonoBehaviour
     public GameObject loginPanel;
     public GameObject guestLoginButton;
     public GameObject googleLoginButton;
+
+    // ★ 테이블 이름 정의
+    private const string TableName = "Table";
 
     private void Awake()
     {
@@ -33,43 +39,43 @@ public class GoogleManager : MonoBehaviour
         PlayGamesPlatform.DebugLogEnabled = true;
         PlayGamesPlatform.Activate();
 
-        // ★ [핵심] 이미 로그인된 세션인지 확인 (게임하다 타이틀로 돌아온 경우)
+        // ★ [핵심] 이미 로그인된 세션인지 확인
         if (DataManager.Instance != null && DataManager.Instance.IsLoggedIn)
         {
             Debug.Log("[System] 이미 로그인된 세션입니다. (로그인 화면 스킵)");
 
-            // 닉네임 복구
             string lastType = PlayerPrefs.GetString("LastLoginType", "");
             if (userIdText != null)
             {
                 if (lastType == "Guest")
                 {
-                    userIdText.text = "ID: Guest";
+                    // "ID: Guest" -> 로컬라이징 적용
+                    userIdText.text = LocalizationSettings.StringDatabase.GetLocalizedString(TableName, "auth_id_guest");
                 }
                 else if (PlayGamesPlatform.Instance.IsAuthenticated())
                 {
-                    userIdText.text = "ID: " + PlayGamesPlatform.Instance.GetUserDisplayName();
+                    // "ID: {0}" -> 로컬라이징 적용 (이름 대입)
+                    string userName = PlayGamesPlatform.Instance.GetUserDisplayName();
+                    userIdText.text = LocalizationSettings.StringDatabase.GetLocalizedString(TableName, "auth_id_user", new object[] { userName });
                 }
             }
 
-            // 패널 끄고 종료
             if (loginPanel != null) loginPanel.SetActive(false);
             return;
         }
 
-        // --- 여기서부터는 앱을 처음 켰거나 로그아웃 상태일 때 ---
-
         string lastLoginType = PlayerPrefs.GetString("LastLoginType", "");
-        Debug.Log($"[System] 저장된 로그인 타입: {(string.IsNullOrEmpty(lastLoginType) ? "없음" : lastLoginType)}");
 
         // 구글이었을 때만 자동 로그인
         if (lastLoginType == "Google")
         {
-            Debug.Log("[System] 기존 구글 유저 감지 -> 자동 로그인 시도");
             if (PlayGamesPlatform.Instance.IsAuthenticated())
             {
                 if (userIdText != null)
-                    userIdText.text = "ID: " + PlayGamesPlatform.Instance.GetUserDisplayName();
+                {
+                    string userName = PlayGamesPlatform.Instance.GetUserDisplayName();
+                    userIdText.text = LocalizationSettings.StringDatabase.GetLocalizedString(TableName, "auth_id_user", new object[] { userName });
+                }
                 StartCoroutine(TryFirebaseLogin());
             }
             else
@@ -80,15 +86,22 @@ public class GoogleManager : MonoBehaviour
         else
         {
             // 게스트였거나 기록 없으면 대기
-            Debug.Log("[System] 자동 로그인 조건 아님 -> 로그인 버튼 활성화");
             SetLoginButtons(true);
-            if (logText != null) logText.text = "Welcome! Please Login.";
+            if (logText != null)
+            {
+                // "Welcome! Please Login." -> 로컬라이징 적용
+                logText.text = LocalizationSettings.StringDatabase.GetLocalizedString(TableName, "auth_welcome");
+            }
         }
     }
 
     public void SignIn()
     {
-        if (logText != null) logText.text = "Logging in...";
+        if (logText != null)
+        {
+            // "Logging in..." -> 로컬라이징 적용
+            logText.text = LocalizationSettings.StringDatabase.GetLocalizedString(TableName, "auth_logging_in");
+        }
         SetLoginButtons(false);
         PlayGamesPlatform.Instance.Authenticate(ProcessAuthentication);
     }
@@ -104,7 +117,11 @@ public class GoogleManager : MonoBehaviour
         else
         {
             Debug.LogError($"[System] GPGS 로그인 실패 (Status: {status})");
-            if (logText != null) logText.text = "Login Failed. Try Again.";
+            if (logText != null)
+            {
+                // "Login Failed. Try Again." -> 로컬라이징 적용
+                logText.text = LocalizationSettings.StringDatabase.GetLocalizedString(TableName, "auth_login_failed");
+            }
             SetLoginButtons(true);
         }
     }
@@ -121,12 +138,14 @@ public class GoogleManager : MonoBehaviour
         PlayerPrefs.SetString("LastLoginType", "Guest");
         PlayerPrefs.Save();
 
-        // DataManager에게 로그인 성공 알림 (여기서 IsLoggedIn = true가 됨)
         if (DataManager.Instance != null)
             DataManager.Instance.OnLoginSuccess(false);
 
         if (userIdText != null)
-            userIdText.text = "ID: Guest";
+        {
+            // "ID: Guest" -> 로컬라이징 적용
+            userIdText.text = LocalizationSettings.StringDatabase.GetLocalizedString(TableName, "auth_id_guest");
+        }
 
         Debug.Log($"[System] 게스트 로그인 완료: {guestName}");
         if (loginPanel != null) loginPanel.SetActive(false);
@@ -134,7 +153,12 @@ public class GoogleManager : MonoBehaviour
 
     IEnumerator TryFirebaseLogin()
     {
-        if (logText != null) logText.text = "Linking Firebase...";
+        if (logText != null)
+        {
+            // "Linking Firebase..." -> 로컬라이징 적용
+            logText.text = LocalizationSettings.StringDatabase.GetLocalizedString(TableName, "auth_linking");
+        }
+
         string authCode = "";
         bool isFinished = false;
 
@@ -149,7 +173,11 @@ public class GoogleManager : MonoBehaviour
         if (string.IsNullOrEmpty(authCode))
         {
             Debug.LogError("[System] 인증 코드 실패");
-            if (logText != null) logText.text = "Auth Code Error";
+            if (logText != null)
+            {
+                // "Login Error" -> 로컬라이징 적용
+                logText.text = LocalizationSettings.StringDatabase.GetLocalizedString(TableName, "auth_error");
+            }
             SetLoginButtons(true);
             yield break;
         }
@@ -163,7 +191,11 @@ public class GoogleManager : MonoBehaviour
         if (task.IsCanceled || task.IsFaulted)
         {
             Debug.LogError("[System] 파이어베이스 로그인 실패");
-            if (logText != null) logText.text = "Login Failed";
+            if (logText != null)
+            {
+                // "Login Failed" -> 로컬라이징 적용
+                logText.text = LocalizationSettings.StringDatabase.GetLocalizedString(TableName, "auth_login_failed");
+            }
             SetLoginButtons(true);
         }
         else
@@ -173,12 +205,15 @@ public class GoogleManager : MonoBehaviour
             Debug.Log($"[System] 파이어베이스 접속 완료. UID: {newUser.UserId}");
 
             if (userIdText != null)
-                userIdText.text = "ID: " + PlayGamesPlatform.Instance.GetUserDisplayName();
+            {
+                // "ID: {0}" -> 로컬라이징 적용
+                string userName = PlayGamesPlatform.Instance.GetUserDisplayName();
+                userIdText.text = LocalizationSettings.StringDatabase.GetLocalizedString(TableName, "auth_id_user", new object[] { userName });
+            }
 
             PlayerPrefs.SetString("LastLoginType", "Google");
             PlayerPrefs.Save();
 
-            // DataManager에게 로그인 성공 알림 (여기서 IsLoggedIn = true가 됨)
             if (DataManager.Instance != null)
                 DataManager.Instance.OnLoginSuccess(true);
 
@@ -196,7 +231,6 @@ public class GoogleManager : MonoBehaviour
     {
         Debug.Log("[System] 로그아웃 진행...");
 
-        // ★ 로그아웃 시 세션 플래그 해제
         if (DataManager.Instance != null)
             DataManager.Instance.IsLoggedIn = false;
 

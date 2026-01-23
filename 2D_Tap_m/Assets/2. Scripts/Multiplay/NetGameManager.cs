@@ -304,7 +304,7 @@ public class NetGameManager : NetworkBehaviour
         SceneManager.LoadScene(titleSceneName);
     }
 
-    public string GetBattleStatusText()
+    public string GetBattleStatusKey()
     {
         if (player1 == null || player2 == null)
         {
@@ -316,7 +316,7 @@ public class NetGameManager : NetworkBehaviour
             }
         }
 
-        if (player1 == null || player2 == null) return "WAITING...";
+        if (player1 == null || player2 == null) return "status_waiting"; // WAITING...
 
         ulong myId = NetworkManager.Singleton.LocalClientId;
         NetSumoBody me = (player1.OwnerClientId == myId) ? player1 : player2;
@@ -328,11 +328,11 @@ public class NetGameManager : NetworkBehaviour
         float enemyDist = Mathf.Abs(enemy.transform.position.x);
         float dangerZone = fallLineX * 0.7f;
 
-        if (myDist > dangerZone) return "DANGER!!";
-        if (enemyDist > dangerZone) return "FINISH HIM!";
-        if (Mathf.Abs(myDist - enemyDist) < 1.0f) return "EQUAL";
-        else if (enemyDist > myDist) return "ADVANTAGE";
-        else return "DEFENSE!";
+        if (myDist > dangerZone) return "status_danger";    // DANGER!!
+        if (enemyDist > dangerZone) return "status_finish"; // FINISH HIM!
+        if (Mathf.Abs(myDist - enemyDist) < 1.0f) return "status_equal"; // EQUAL
+        else if (enemyDist > myDist) return "status_advantage"; // ADVANTAGE
+        else return "status_defense"; // DEFENSE!
     }
 
     [Rpc(SendTo.ClientsAndHost)]

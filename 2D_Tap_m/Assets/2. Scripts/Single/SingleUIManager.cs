@@ -1,7 +1,8 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
+﻿using TMPro;
+using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Localization.Settings;
+using UnityEngine.UI;
 
 public class SingleUIManager : MonoBehaviour
 {
@@ -28,6 +29,8 @@ public class SingleUIManager : MonoBehaviour
 
     // 싱글 플레이어 참조
     public PlayerController singlePlayer;
+
+    private const string TableName = "Table";
 
     // ★ [추가] 콤보 텍스트 (Inspector 연결 필요!)
     [Header("Combo Display")]
@@ -144,8 +147,12 @@ public class SingleUIManager : MonoBehaviour
     void UpdateStatusText()
     {
         if (distanceText == null) return;
-        string status = GameManager.Instance.GetBattleStatusText();
-        if (!string.IsNullOrEmpty(status)) distanceText.text = status;
+        // ★ Key 받아오기
+        string statusKey = GameManager.Instance.GetBattleStatusKey();
+        if (!string.IsNullOrEmpty(statusKey))
+        {
+            distanceText.text = LocalizationSettings.StringDatabase.GetLocalizedString(TableName, statusKey);
+        }
     }
 
     public void ShowResult(bool playerWin)
@@ -157,8 +164,19 @@ public class SingleUIManager : MonoBehaviour
         // 싱글은 재시작 버튼 안 보이게 확실히 처리
         if (restartButton != null) restartButton.gameObject.SetActive(false);
 
-        if (playerWin) { resultText.text = "VICTORY!"; resultText.color = Color.green; }
-        else { restartButton.gameObject.SetActive(true);  resultText.text = "DEFEAT..."; resultText.color = Color.red; }
+        if (playerWin)
+        {
+            // ★ ui_victory 키 사용 (싱글 전용)
+            resultText.text = LocalizationSettings.StringDatabase.GetLocalizedString(TableName, "ui_win");
+            resultText.color = Color.green;
+        }
+        else
+        {
+            // ★ ui_defeat 키 사용 (싱글 전용)
+            resultText.text = LocalizationSettings.StringDatabase.GetLocalizedString(TableName, "ui_lose");
+            resultText.color = Color.red;
+            restartButton.gameObject.SetActive(true);
+        }
     }
 
     public void HideResult()
@@ -169,18 +187,20 @@ public class SingleUIManager : MonoBehaviour
 
     public void UpdateRoundText(int round)
     {
-        if (roundText != null) roundText.text = $"ROUND {round}";
+        // ★ ui_round 키 사용 (숫자 포맷)
+        if (roundText != null)
+            roundText.text = LocalizationSettings.StringDatabase.GetLocalizedString(TableName, "ui_round", new object[] { round });
     }
 
     // ★ [추가] 콤보 텍스트 업데이트 함수
     public void UpdateComboText(int combo)
     {
         if (comboText == null) return;
-
-        if (combo > 1) // 2콤보 이상일 때 표시
+        if (combo > 1)
         {
             comboText.gameObject.SetActive(true);
-            comboText.text = $"{combo} COMBO!";
+            // ★ ui_combo 키 사용 (숫자 포맷)
+            comboText.text = LocalizationSettings.StringDatabase.GetLocalizedString(TableName, "ui_combo", new object[] { combo });
         }
         else
         {
