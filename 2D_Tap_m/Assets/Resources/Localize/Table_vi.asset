@@ -255,6 +255,10 @@ MonoBehaviour:
     m_Localized: "Vui l\xF2ng ki\u1EC3m tra k\u1EBFt n\u1ED1i Internet."
     m_Metadata:
       m_Items: []
+  - m_Id: 23964693028864
+    m_Localized: "\u0110ang ch\u1EDD..."
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

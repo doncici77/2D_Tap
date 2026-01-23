@@ -254,6 +254,10 @@ MonoBehaviour:
     m_Localized: Please check your internet connection.
     m_Metadata:
       m_Items: []
+  - m_Id: 23964693028864
+    m_Localized: WAITING...
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

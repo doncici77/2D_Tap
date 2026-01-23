@@ -251,6 +251,14 @@ MonoBehaviour:
     m_Key: lobby_check_internet
     m_Metadata:
       m_Items: []
+  - m_Id: 23964693028864
+    m_Key: status_waiting
+    m_Metadata:
+      m_Items: []
+  - m_Id: 23152671580160
+    m_Key: test
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

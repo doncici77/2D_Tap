@@ -205,7 +205,7 @@ public class MultiUIManager : MonoBehaviour
         }
 
         // 버튼 활성화 로직 (키 값으로 비교)
-        bool isWaiting = (statusKey == "ui_waiting" || statusKey == "ui_waiting_opponent" || statusKey == "status_waiting");
+        bool isWaiting = (statusKey == "ui_waiting" || statusKey == "ui_waiting_opponent");
 
         if (multiExitButton != null)
         {
