@@ -186,26 +186,35 @@ public class MultiUIManager : MonoBehaviour
         trigger.triggers.Add(entry);
     }
 
-    // ★ [수정] 상태 텍스트 로컬라이징
     void UpdateBattleStatus()
     {
         if (distanceText == null) return;
 
-        // NetGameManager에서 영어 문장이 아니라 "키 값(status_danger 등)"을 받아옵니다.
         string statusKey = NetGameManager.Instance.GetBattleStatusKey();
 
-        if (!string.IsNullOrEmpty(statusKey))
+        // 1. 재경기 대기 중인지 확인 (rematchStatusText에 글자가 있으면 대기 중인 것으로 간주)
+        bool isRematchWaiting = false;
+        if (rematchStatusText != null && !string.IsNullOrEmpty(rematchStatusText.text))
         {
-            // 키 값을 이용해 번역된 텍스트 가져오기
+            isRematchWaiting = true;
+        }
+
+        // 2. 텍스트 업데이트 (재경기 대기 중이면 NetGameManager 값 무시하고 기존 텍스트 유지)
+        if (!isRematchWaiting && !string.IsNullOrEmpty(statusKey))
+        {
             distanceText.text = LocalizationSettings.StringDatabase.GetLocalizedString(TableName, statusKey);
         }
-        else
+        else if (string.IsNullOrEmpty(statusKey) && !isRematchWaiting)
         {
             distanceText.text = "";
         }
 
-        // 버튼 활성화 로직 (키 값으로 비교)
-        bool isWaiting = (statusKey == "ui_waiting" || statusKey == "ui_waiting_opponent");
+        // 3. 버튼 활성화 로직
+        // - ui_waiting (서버 접속 대기)
+        // - ui_waiting_opponent (상대 접속 대기)
+        // - isRematchWaiting (재경기 수락 대기)
+        // 이 중 하나라도 해당되면 나가기 버튼을 보여줍니다.
+        bool isWaiting = (statusKey == "ui_waiting" || statusKey == "ui_waiting_opponent" || isRematchWaiting || statusKey == "status_waiting");
 
         if (multiExitButton != null)
         {

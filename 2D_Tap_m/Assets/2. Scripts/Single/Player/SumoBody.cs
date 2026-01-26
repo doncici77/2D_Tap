@@ -23,6 +23,9 @@ public class SumoBody : MonoBehaviour
     private Vector3 targetPosition;
     private int currentSkinIndex = 0;
 
+    // ★ [추가] 실행 중인 애니메이션 코루틴을 저장할 변수
+    private Coroutine attackRoutine;
+
     private void Awake()
     {
         if (bodyRenderer == null) bodyRenderer = GetComponent<SpriteRenderer>();
@@ -72,9 +75,14 @@ public class SumoBody : MonoBehaviour
     // ============================================
     public void PlayAttackAnim()
     {
-        // 이미 움직이고 있어도 강제로 멈추고 새로 시작 (반응성 향상)
-        StopAllCoroutines();
-        StartCoroutine(SquashRoutine());
+        // 1. StopAllCoroutines 대신, 저장해둔 특정 코루틴만 멈춥니다.
+        if (attackRoutine != null)
+        {
+            StopCoroutine(attackRoutine);
+        }
+
+        // 2. 코루틴을 시작하면서 변수에 저장합니다.
+        attackRoutine = StartCoroutine(SquashRoutine());
     }
 
     private IEnumerator SquashRoutine()
@@ -105,6 +113,8 @@ public class SumoBody : MonoBehaviour
 
         // 3. 확실하게 원상복구
         targetTr.localScale = originalScale;
+
+        attackRoutine = null;
     }
     // ============================================
 
