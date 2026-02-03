@@ -1,7 +1,7 @@
-﻿using UnityEngine;
-using System.Collections; // ★ [추가] 코루틴 사용을 위해 필수
+using UnityEngine;
+using System.Collections;
 
-public class SumoBody : MonoBehaviour
+public class SumoBody : MonoBehaviour, IBody
 {
     [Header("References")]
     public SumoBody opponent;
@@ -14,16 +14,13 @@ public class SumoBody : MonoBehaviour
     public float moveSpeed = 10f;
     public float tileSize = 1.5f;
 
-    // ★ [추가] 쫀득한 애니메이션 설정값
     [Header("Animation Settings")]
-    public float squashDuration = 0.15f; // 애니메이션 시간
-    public Vector3 attackScale = new Vector3(1.3f, 0.8f, 1f); // 늘어날 크기 (X는 뚱뚱, Y는 납작)
+    public float squashDuration = 0.15f;
+    public Vector3 attackScale = new Vector3(1.3f, 0.8f, 1f);
 
     public bool IsMoving { get; private set; }
     private Vector3 targetPosition;
     private int currentSkinIndex = 0;
-
-    // ★ [추가] 실행 중인 애니메이션 코루틴을 저장할 변수
     private Coroutine attackRoutine;
 
     private void Awake()
@@ -53,9 +50,6 @@ public class SumoBody : MonoBehaviour
         }
     }
 
-    // ============================================
-    // 사운드 재생 함수들
-    // ============================================
     public void PlaySuccessSound()
     {
         AudioClip clip = (characterDB != null) ? characterDB.GetSuccessSound(currentSkinIndex) : null;
@@ -70,29 +64,18 @@ public class SumoBody : MonoBehaviour
         else SoundManager.Instance.PlaySFX(SFX.Fail);
     }
 
-    // ============================================
-    // ★ [추가] 쫀득한 공격 애니메이션 실행 함수
-    // ============================================
     public void PlayAttackAnim()
     {
-        // 1. StopAllCoroutines 대신, 저장해둔 특정 코루틴만 멈춥니다.
-        if (attackRoutine != null)
-        {
-            StopCoroutine(attackRoutine);
-        }
-
-        // 2. 코루틴을 시작하면서 변수에 저장합니다.
+        if (attackRoutine != null) StopCoroutine(attackRoutine);
         attackRoutine = StartCoroutine(SquashRoutine());
     }
 
     private IEnumerator SquashRoutine()
     {
-        // 렌더러가 붙은 오브젝트(이미지)만 변형
         Transform targetTr = bodyRenderer.transform;
         Vector3 originalScale = gameObject.transform.localScale;
         float timer = 0f;
 
-        // 1. 찌그러지기 (가는 과정)
         while (timer < squashDuration / 2)
         {
             timer += Time.deltaTime;
@@ -101,7 +84,6 @@ public class SumoBody : MonoBehaviour
             yield return null;
         }
 
-        // 2. 돌아오기 (오는 과정)
         timer = 0f;
         while (timer < squashDuration / 2)
         {
@@ -111,12 +93,9 @@ public class SumoBody : MonoBehaviour
             yield return null;
         }
 
-        // 3. 확실하게 원상복구
         targetTr.localScale = originalScale;
-
         attackRoutine = null;
     }
-    // ============================================
 
     private void Update()
     {

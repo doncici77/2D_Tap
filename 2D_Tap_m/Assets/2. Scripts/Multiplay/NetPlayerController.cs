@@ -1,39 +1,10 @@
-﻿using System.Collections;
+using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class NetPlayerController : NetworkBehaviour
+public class NetPlayerController : BasePlayerController
 {
-    [Header("Connect Body")]
-    public NetSumoBody myBody; // ★ 여기에 연결되어 있어야 함!
-
-    [Header("Game Settings")]
-    public float attackCooldown = 0.5f;
-
-    [Header("Difficulty")]
-    public float initialGaugeSpeed = 3f;
-    public float speedStep = 0.5f;
-    public float maxGaugeSpeed = 10f;
-    [Range(0f, 1f)] public float initialThreshold = 0.5f;
-    [Range(0f, 0.1f)] public float thresholdStep = 0.05f;
-    [Range(0f, 0.98f)] public float maxThreshold = 0.95f;
-
-    [Header("Combo System")]
-    private int comboCount = 0;
-    public float comboBonus = 0.2f;
-    public float maxComboPower = 3.0f;
-
-    private enum State { Idle, Charging, Cooldown }
-    private State state = State.Idle;
-    public bool IsCharging => state == State.Charging;
-
-    private float currentSpeed;
-    private float currentThreshold;
-    public float CurrentGaugeValue { get; private set; }
-    public float CurrentThreshold => currentThreshold;
-    private float chargeStartTime;
-
     public override void OnNetworkSpawn()
     {
         if (IsOwner)
@@ -42,16 +13,23 @@ public class NetPlayerController : NetworkBehaviour
             StartCharging();
 
             if (MultiUIManager.Instance != null)
-            {
                 MultiUIManager.Instance.SetNetPlayer(this);
-            }
 
-            if (!IsServer)
-            {
-                AdjustCameraForClient();
-            }
+            if (!IsServer) AdjustCameraForClient();
 
             SceneManager.sceneLoaded += OnSceneLoaded;
+
+            // UI 연결
+            OnComboChanged += (combo) => {
+                if (MultiUIManager.Instance != null) MultiUIManager.Instance.UpdateComboText(combo);
+            };
+
+            // 네트워크 공격 요청 추가 (기본 동작 외 추가 로직)
+            OnSuccess += (power, gauge) => {
+                if (IsOwner) {
+                    RequestAttackServerRpc(power);
+                }
+            };
         }
     }
 
@@ -71,9 +49,7 @@ public class NetPlayerController : NetworkBehaviour
             StartCharging();
 
             if (MultiUIManager.Instance != null)
-            {
                 MultiUIManager.Instance.SetNetPlayer(this);
-            }
         }
 
         if (IsOwner && !IsServer)
@@ -102,56 +78,17 @@ public class NetPlayerController : NetworkBehaviour
         }
     }
 
-    private void Update()
+    protected override void Update()
     {
         if (!IsOwner) return;
-
-        if (NetGameManager.Instance != null &&
-            NetGameManager.Instance.currentNetState.Value != NetGameManager.GameState.Playing)
-            return;
-
-        if (state == State.Charging)
-        {
-            float timePassed = Time.time - chargeStartTime;
-            CurrentGaugeValue = Mathf.PingPong(timePassed * currentSpeed, 1f);
-        }
+        base.Update();
     }
 
-    public void TryAction()
+    protected override bool CanPerformAction()
     {
-        if (!IsOwner) return;
-
-        if (NetGameManager.Instance != null &&
-            NetGameManager.Instance.currentNetState.Value != NetGameManager.GameState.Playing) return;
-
-        if (state == State.Charging)
-        {
-            if (CurrentGaugeValue >= CurrentThreshold) // 성공!
-            {
-                comboCount++;
-
-                if (MultiUIManager.Instance != null)
-                    MultiUIManager.Instance.UpdateComboText(comboCount);
-
-                float power = 1.0f + ((comboCount - 1) * comboBonus);
-                power = Mathf.Min(power, maxComboPower);
-
-                RequestAttackServerRpc(power);
-                SuccessAttackLocal();
-            }
-            else // 실패!
-            {
-                comboCount = 0;
-                if (MultiUIManager.Instance != null)
-                    MultiUIManager.Instance.UpdateComboText(0);
-
-                StartCoroutine(FailRoutine());
-            }
-        }
-        else if (state == State.Idle)
-        {
-            StartCharging();
-        }
+        if (!IsOwner) return false;
+        return NetGameManager.Instance != null && 
+               NetGameManager.Instance.currentNetState.Value == NetGameManager.GameState.Playing;
     }
 
     [Rpc(SendTo.Server)]
@@ -159,7 +96,7 @@ public class NetPlayerController : NetworkBehaviour
     {
         if (myBody != null)
         {
-            myBody.PushOpponentServer(power);
+            myBody.PushOpponent(power);
         }
     }
 
@@ -167,11 +104,9 @@ public class NetPlayerController : NetworkBehaviour
     public void ResetPlayerStateRpc()
     {
         ResetDifficulty();
-        state = State.Idle;
+        currentState = State.Idle;
         CurrentGaugeValue = 0f;
-        comboCount = 0;
-        if (MultiUIManager.Instance != null) MultiUIManager.Instance.UpdateComboText(0);
-
+        
         StartCharging();
         if (!IsServer) AdjustCameraForClient();
     }
@@ -183,57 +118,5 @@ public class NetPlayerController : NetworkBehaviour
         {
             NetGameManager.Instance.PlayerRequestRematch(this.OwnerClientId);
         }
-    }
-
-    // ★ [여기만 수정됨] 성공 시 애니메이션 실행
-    private void SuccessAttackLocal()
-    {
-        currentSpeed = Mathf.Min(currentSpeed + speedStep, maxGaugeSpeed);
-        currentThreshold = Mathf.Min(currentThreshold + thresholdStep, maxThreshold);
-
-        // 1. 사운드 재생
-        if (myBody != null) myBody.PlaySuccessSound();
-        else SoundManager.Instance.PlaySFX(SFX.Success);
-
-        // ★ [추가] 2. 쫀득한 젤리 애니메이션 실행!
-        if (myBody != null)
-        {
-            myBody.PlayAttackAnim();
-        }
-
-        StartCoroutine(CooldownRoutine());
-    }
-
-    private IEnumerator FailRoutine()
-    {
-        // ★ [수정] myBody에게 소리 재생 요청
-        if (myBody != null) myBody.PlayFailSound();
-        else SoundManager.Instance.PlaySFX(SFX.Fail);
-
-        state = State.Cooldown;
-        Debug.Log("Miss!");
-        ResetDifficulty();
-        yield return new WaitForSeconds(attackCooldown);
-        StartCharging();
-    }
-
-    private IEnumerator CooldownRoutine()
-    {
-        state = State.Cooldown;
-        yield return new WaitForSeconds(attackCooldown);
-        StartCharging();
-    }
-
-    private void StartCharging()
-    {
-        state = State.Charging;
-        chargeStartTime = Time.time;
-        CurrentGaugeValue = 0f;
-    }
-
-    public void ResetDifficulty()
-    {
-        currentSpeed = initialGaugeSpeed;
-        currentThreshold = initialThreshold;
     }
 }

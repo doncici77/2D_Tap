@@ -1,142 +1,26 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : BasePlayerController
 {
-    [Header("Connect Body")]
-    public SumoBody myBody;
-
-    [Header("Game Settings")]
-    public float attackCooldown = 0.5f;
-
-    [Header("Difficulty (Dynamic)")]
-    public float initialGaugeSpeed = 3f;
-    public float speedStep = 0.5f;
-    public float maxGaugeSpeed = 10f;
-
-    [Range(0f, 1f)] public float initialThreshold = 0.5f;
-    [Range(0f, 0.1f)] public float thresholdStep = 0.05f;
-    [Range(0f, 0.98f)] public float maxThreshold = 0.95f;
-
-    [Header("Combo System")]
-    private int comboCount = 0;
-    public float comboBonus = 0.2f;
-
-    private enum State { Idle, Charging, Cooldown }
-    private State state = State.Idle;
-    public bool IsCharging => state == State.Charging;
-
-    private float currentSpeed;
-    private float currentThreshold;
-    public float CurrentGaugeValue { get; private set; }
-    public float CurrentThreshold => currentThreshold;
-    private float chargeStartTime;
-
-    private void Start()
+    protected override void Start()
     {
-        ResetDifficulty();
-        StartCharging();
+        base.Start();
+        
+        // UI 연결 (이벤트 기반)
+        OnComboChanged += (combo) => {
+            if (SingleUIManager.Instance != null) SingleUIManager.Instance.UpdateComboText(combo);
+        };
     }
 
-    private void Update()
+    protected override bool CanPerformAction()
     {
-        if (state == State.Charging)
-        {
-            float timePassed = Time.time - chargeStartTime;
-            CurrentGaugeValue = Mathf.PingPong(timePassed * currentSpeed, 1f);
-        }
+        return GameManager.Instance != null && !GameManager.Instance.IsGameOver;
     }
 
-    public void TryAction()
-    {
-        if (GameManager.Instance.IsGameOver) return;
-
-        if (state == State.Charging)
-        {
-            if (CurrentGaugeValue >= currentThreshold)
-            {
-                comboCount++;
-                if (SingleUIManager.Instance != null)
-                    SingleUIManager.Instance.UpdateComboText(comboCount);
-
-                SuccessAttack();
-            }
-            else
-            {
-                comboCount = 0;
-                if (SingleUIManager.Instance != null)
-                    SingleUIManager.Instance.UpdateComboText(0);
-
-                StartCoroutine(FailRoutine());
-            }
-        }
-        else if (state == State.Idle)
-        {
-            StartCharging();
-        }
-    }
-
+    // 기존의 OnActionBtnPressed는 그대로 유지 (UI 하위 호환)
     public void OnActionBtnPressed()
     {
         TryAction();
-    }
-
-    private void SuccessAttack()
-    {
-        float power = 1.0f + ((comboCount - 1) * comboBonus);
-        myBody.PushOpponent(power);
-
-        currentSpeed = Mathf.Min(currentSpeed + speedStep, maxGaugeSpeed);
-        currentThreshold = Mathf.Min(currentThreshold + thresholdStep, maxThreshold);
-
-        if (myBody != null)
-        {
-            // 1. 소리 재생
-            myBody.PlaySuccessSound();
-
-            // ★ [추가] 2. 쫀득한 애니메이션 실행
-            myBody.PlayAttackAnim();
-        }
-
-        StartCoroutine(CooldownRoutine());
-    }
-
-    private IEnumerator FailRoutine()
-    {
-        if (myBody != null) myBody.PlayFailSound();
-
-        state = State.Cooldown;
-        Debug.Log("Miss! 패널티 적용");
-
-        ResetDifficulty();
-
-        yield return new WaitForSeconds(attackCooldown);
-        StartCharging();
-    }
-
-    private IEnumerator CooldownRoutine()
-    {
-        state = State.Cooldown;
-        yield return new WaitForSeconds(attackCooldown);
-        StartCharging();
-    }
-
-    private void StartCharging()
-    {
-        state = State.Charging;
-        chargeStartTime = Time.time;
-        CurrentGaugeValue = 0f;
-    }
-
-    public void ResetDifficulty()
-    {
-        currentSpeed = initialGaugeSpeed;
-        currentThreshold = initialThreshold;
-        comboCount = 0;
-
-        if (SingleUIManager.Instance != null)
-            SingleUIManager.Instance.UpdateComboText(0);
-
-        Debug.Log("플레이어 난이도 & 콤보 초기화됨");
     }
 }
